@@ -1,0 +1,102 @@
+# Coolify deployment of this fork (builds the image from source).
+#
+# Used by the Coolify apps "twenty-production" (branch main) and
+# "twenty-preview" (branch preview). Coolify runs compose with
+# --project-directory set to the repository root, so the build context "."
+# below is the repo root.
+#
+# Coolify-managed variables:
+#   SERVER_URL                   public https URL of the environment (set per app)
+#   SERVICE_PASSWORD_POSTGRES    generated per app by Coolify
+#   SERVICE_BASE64_64_APPSECRET  generated per app by Coolify
+# The domain is attached to the "server" service (port 3000) in Coolify; no
+# host ports are published, Traefik routes the traffic.
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: packages/twenty-docker/twenty/Dockerfile
+      target: twenty
+    volumes:
+      - server-local-data:/app/packages/twenty-server/.local-storage
+    expose:
+      - "3000"
+    environment:
+      NODE_PORT: 3000
+      SERVER_URL: ${SERVER_URL}
+      PG_DATABASE_URL: postgres://postgres:${SERVICE_PASSWORD_POSTGRES}@db:5432/default
+      REDIS_URL: redis://redis:6379
+      APP_SECRET: ${SERVICE_BASE64_64_APPSECRET}
+      STORAGE_TYPE: local
+      DISABLE_DB_MIGRATIONS: "false"
+      DISABLE_CRON_JOBS_REGISTRATION: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:3000/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+    restart: always
+
+  worker:
+    build:
+      context: .
+      dockerfile: packages/twenty-docker/twenty/Dockerfile
+      target: twenty
+    command: ["yarn", "worker:prod"]
+    volumes:
+      - server-local-data:/app/packages/twenty-server/.local-storage
+    environment:
+      NODE_PORT: 3000
+      SERVER_URL: ${SERVER_URL}
+      PG_DATABASE_URL: postgres://postgres:${SERVICE_PASSWORD_POSTGRES}@db:5432/default
+      REDIS_URL: redis://redis:6379
+      APP_SECRET: ${SERVICE_BASE64_64_APPSECRET}
+      STORAGE_TYPE: local
+      DISABLE_DB_MIGRATIONS: "true"
+      DISABLE_CRON_JOBS_REGISTRATION: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    restart: always
+    exclude_from_hc: true
+
+  db:
+    image: postgres:16
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: default
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -h localhost -d default"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+  redis:
+    image: redis:7
+    command: ["--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+volumes:
+  db-data:
+  server-local-data:
+  redis-data:
