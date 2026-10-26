@@ -19,7 +19,7 @@ services:
       dockerfile: packages/twenty-docker/twenty/Dockerfile
       target: twenty
     volumes:
-      - server-local-data:/app/packages/twenty-server/.local-storage
+      - twenty-local-storage:/app/packages/twenty-server/.local-storage
     expose:
       - "3000"
     environment:
@@ -51,7 +51,7 @@ services:
       target: twenty
     command: ["yarn", "worker:prod"]
     volumes:
-      - server-local-data:/app/packages/twenty-server/.local-storage
+      - twenty-local-storage:/app/packages/twenty-server/.local-storage
     environment:
       NODE_PORT: 3000
       SERVER_URL: ${SERVER_URL}
@@ -72,7 +72,7 @@ services:
   db:
     image: postgres:16
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - twenty-pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: default
       POSTGRES_USER: postgres
@@ -88,7 +88,7 @@ services:
     image: redis:7
     command: ["--maxmemory-policy", "noeviction"]
     volumes:
-      - redis-data:/data
+      - twenty-redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -96,7 +96,10 @@ services:
       retries: 10
     restart: always
 
+# Volume names are intentionally different from the official compose so this
+# stack never reuses data volumes left behind by an older deployment of the
+# same Coolify app (Postgres would keep the old password).
 volumes:
-  db-data:
-  server-local-data:
-  redis-data:
+  twenty-pgdata:
+  twenty-local-storage:
+  twenty-redis:
