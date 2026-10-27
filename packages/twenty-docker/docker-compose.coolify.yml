@@ -11,6 +11,24 @@
 #   SERVICE_BASE64_64_APPSECRET  generated per app by Coolify
 # The domain is attached to the "server" service (port 3000) in Coolify; no
 # host ports are published, Traefik routes the traffic.
+#
+# Coolify also injects every variable defined in the app into each service
+# through env_file (.env), so optional Twenty settings (FRONTEND_URL, OAuth,
+# SMTP, ...) can be set in Coolify without listing them here.
+#
+# Multi-workspace (production only):
+#   IS_MULTIWORKSPACE_ENABLED     "true" to enable (default false)
+#   DEFAULT_SUBDOMAIN             subdomain of the login/default app (default app)
+#   FRONTEND_URL                  base domain of the workspaces, e.g.
+#                                 https://khard.cloud -> app.khard.cloud is the
+#                                 login and <workspace>.khard.cloud the workspaces.
+#                                 Leave unset in single-workspace apps.
+#   TWENTY_WORKSPACE_ROUTER_RULE  Traefik rule for the workspace subdomains, e.g.
+#                                 HostRegexp(`^[a-z0-9-]+[.]khard[.]cloud`)
+#                                 (set it as a literal variable). Unset = the
+#                                 catch-all router matches nothing.
+# The labels below use ${...} interpolation, so "Escape special characters in
+# labels" must be disabled for the Coolify app.
 
 services:
   server:
@@ -31,6 +49,20 @@ services:
       STORAGE_TYPE: local
       DISABLE_DB_MIGRATIONS: "false"
       DISABLE_CRON_JOBS_REGISTRATION: "false"
+      IS_MULTIWORKSPACE_ENABLED: ${IS_MULTIWORKSPACE_ENABLED:-false}
+      DEFAULT_SUBDOMAIN: ${DEFAULT_SUBDOMAIN:-app}
+    labels:
+      # Catch-all router for workspace subdomains (<workspace>.<front domain>).
+      # Low priority so explicit Host() routers of other apps always win.
+      # Cloudflare (SSL mode Full) terminates the public TLS; the origin uses
+      # Traefik's default certificate.
+      - "traefik.http.routers.twenty-ws-${COOLIFY_RESOURCE_UUID}.rule=${TWENTY_WORKSPACE_ROUTER_RULE:-Host(`twenty-workspaces.invalid`)}"
+      - "traefik.http.routers.twenty-ws-${COOLIFY_RESOURCE_UUID}.entrypoints=https"
+      - "traefik.http.routers.twenty-ws-${COOLIFY_RESOURCE_UUID}.priority=10"
+      - "traefik.http.routers.twenty-ws-${COOLIFY_RESOURCE_UUID}.tls=true"
+      - "traefik.http.routers.twenty-ws-${COOLIFY_RESOURCE_UUID}.middlewares=gzip-sse"
+      - "traefik.http.routers.twenty-ws-${COOLIFY_RESOURCE_UUID}.service=twenty-ws-${COOLIFY_RESOURCE_UUID}"
+      - "traefik.http.services.twenty-ws-${COOLIFY_RESOURCE_UUID}.loadbalancer.server.port=3000"
     depends_on:
       db:
         condition: service_healthy
@@ -61,6 +93,8 @@ services:
       STORAGE_TYPE: local
       DISABLE_DB_MIGRATIONS: "true"
       DISABLE_CRON_JOBS_REGISTRATION: "true"
+      IS_MULTIWORKSPACE_ENABLED: ${IS_MULTIWORKSPACE_ENABLED:-false}
+      DEFAULT_SUBDOMAIN: ${DEFAULT_SUBDOMAIN:-app}
     depends_on:
       db:
         condition: service_healthy
