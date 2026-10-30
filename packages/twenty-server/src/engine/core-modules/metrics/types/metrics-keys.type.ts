@@ -68,6 +68,7 @@ export enum MetricsKeys {
   JobWaiting = 'job/waiting',
   JobLatencyMs = 'job/latency-ms',
   JobDurationMs = 'job/duration-ms',
+  JobFairTagFallback = 'job/fair-tag-fallback',
   AiChatTurnLatencyMs = 'ai-chat/turn-latency-ms',
   AiChatStepLatencyMs = 'ai-chat/step-latency-ms',
   AiChatTtftMs = 'ai-chat/ttft-ms',
@@ -100,4 +101,5 @@ export enum MetricsKeys {
   OrmV2WritePathUsed = 'orm-v2/write-path-used',
   CampaignEngagementCaptureFailed = 'campaign-engagement/capture-failed',
   CampaignEngagementCaptureThrottled = 'campaign-engagement/capture-throttled',
+  UserSessionCookieLegacyAccess = 'user-session/cookie-legacy-access',
 }

@@ -937,6 +937,11 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       toStringify: false,
       universalProperty: undefined,
     },
+    webhookId: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: 'webhookUniversalIdentifier',
+    },
     agentId: {
       toCompare: true,
       toStringify: false,
@@ -2184,6 +2189,43 @@ export const ALL_ENTITY_PROPERTIES_CONFIGURATION_BY_METADATA_NAME = {
       universalProperty: undefined,
     },
     scope: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: undefined,
+    },
+    createdAt: {
+      toCompare: false,
+      toStringify: false,
+      universalProperty: undefined,
+    },
+    updatedAt: {
+      toCompare: false,
+      toStringify: false,
+      universalProperty: undefined,
+    },
+  },
+  relatedRecordPath: {
+    objectMetadataId: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: 'objectMetadataUniversalIdentifier',
+    },
+    firstFieldMetadataId: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: 'firstFieldMetadataUniversalIdentifier',
+    },
+    secondFieldMetadataId: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: 'secondFieldMetadataUniversalIdentifier',
+    },
+    thirdFieldMetadataId: {
+      toCompare: true,
+      toStringify: false,
+      universalProperty: 'thirdFieldMetadataUniversalIdentifier',
+    },
+    isInherent: {
       toCompare: true,
       toStringify: false,
       universalProperty: undefined,

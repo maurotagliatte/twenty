@@ -13,7 +13,10 @@ const sharedDependencies: Parameters<
 >[0]['sharedDependencies'] = {
   checksum: 'a'.repeat(64),
   exportNamesBySpecifier: new Map([
-    ['react', { namedExports: ['useState'], hasDefaultExport: true }],
+    [
+      'react',
+      { namedExports: ['useEffect', 'useState'], hasDefaultExport: true },
+    ],
     [
       'react/jsx-runtime',
       { namedExports: ['jsx', 'jsxs', 'Fragment'], hasDefaultExport: false },
@@ -171,11 +174,8 @@ describe('buildFrontComponent', () => {
         }),
       ).toThrow(
         expect.objectContaining({
-          code: 'INVALID_INPUT',
+          code: 'INVALID_SETTINGS',
           message: expect.stringContaining('pageLayoutType'),
-          userFriendlyMessage: expect.objectContaining({
-            message: 'Invalid front component settings.',
-          }),
         }),
       );
     },
@@ -189,11 +189,7 @@ describe('buildFrontComponent', () => {
     await expect(
       buildFrontComponent({ ...INPUT, query }),
     ).rejects.toMatchObject({
-      code: 'INVALID_INPUT',
-      userFriendlyMessage: {
-        id: expect.any(String),
-        message: 'Invalid front component settings.',
-      },
+      code: 'INVALID_SETTINGS',
     });
   });
 
@@ -220,10 +216,6 @@ describe('buildFrontComponent', () => {
     ).rejects.toMatchObject({
       code: 'BUILD_FAILED',
       message: expect.stringContaining('Build failed'),
-      userFriendlyMessage: {
-        id: expect.any(String),
-        message: 'Failed to build front component.',
-      },
     });
   });
 

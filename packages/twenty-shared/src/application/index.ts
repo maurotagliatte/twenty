@@ -130,6 +130,7 @@ export { getObjectPermissionUniversalIdentifier } from './deterministic-identifi
 export { getObjectUniversalIdentifier } from './deterministic-identifier/get-object-universal-identifier.util';
 export { getPageLayoutUniversalIdentifier } from './deterministic-identifier/get-page-layout-universal-identifier.util';
 export { getPermissionFlagUniversalIdentifier } from './deterministic-identifier/get-permission-flag-universal-identifier.util';
+export { getRelatedRecordPathUniversalIdentifier } from './deterministic-identifier/get-related-record-path-universal-identifier.util';
 export { getRolePermissionFlagUniversalIdentifier } from './deterministic-identifier/get-role-permission-flag-universal-identifier.util';
 export { getRoleTargetUniversalIdentifier } from './deterministic-identifier/get-role-target-universal-identifier.util';
 export { getRoleUniversalIdentifier } from './deterministic-identifier/get-role-universal-identifier.util';
@@ -189,6 +190,7 @@ export type {
   IdentifiedAccount,
   IdentifyAccountResult,
 } from './identifyAccountType';
+export type { InboxThreadRecordInput } from './inboxThreadRecordInputType';
 export type { IndexFieldManifest } from './indexFieldManifestType';
 export type { IndexManifest } from './indexManifestType';
 export type {
@@ -275,6 +277,7 @@ export type { UninstallLogicFunctionApplicationManifest } from './uninstallLogic
 export type { UsageOperationTypeValue } from './usageOperationTypesType';
 export {
   USAGE_OPERATION_TYPES,
+  DEFAULT_APP_USAGE_OPERATION_TYPE,
   isUsageOperationTypeValue,
 } from './usageOperationTypesType';
 export {
@@ -313,6 +316,7 @@ export type { WorkflowManifest } from './workflowManifestType';
 export { workflowManifestSchema } from './workflowManifestType';
 export type { WorkflowStepManifest } from './workflowStepManifestType';
 export {
+  workflowManifestPositionSchema,
   workflowStepFilterManifestSchema,
   workflowStepManifestSchema,
 } from './workflowStepManifestType';

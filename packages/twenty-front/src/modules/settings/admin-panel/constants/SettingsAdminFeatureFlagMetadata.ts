@@ -12,10 +12,6 @@ export const SETTINGS_ADMIN_FEATURE_FLAG_METADATA: Record<
     label: msg`Configurable search fields`,
     description: msg`Choose which fields are used when searching for records.`,
   },
-  [FeatureFlagKey.IS_MESSAGE_CAMPAIGN_ENABLED]: {
-    label: msg`Email campaigns`,
-    description: msg`Enable email campaigns, lists, and unsubscribe management.`,
-  },
   [FeatureFlagKey.IS_REST_METADATA_API_NEW_FORMAT_DIRECT]: {
     label: msg`Direct REST metadata responses`,
     description: msg`Return metadata directly instead of wrapping it in the legacy response envelope.`,
@@ -43,5 +39,9 @@ export const SETTINGS_ADMIN_FEATURE_FLAG_METADATA: Record<
   [FeatureFlagKey.IS_MCP_SERVERS_ENABLED]: {
     label: msg`MCP servers`,
     description: msg`Register external MCP servers in Developers settings and expose their tools to AI chat.`,
+  },
+  [FeatureFlagKey.IS_RELATED_RECORD_PATHS_ENABLED]: {
+    label: msg`Related record paths`,
+    description: msg`Define the relations along which a record's permissions extend to related records.`,
   },
 };
