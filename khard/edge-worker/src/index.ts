@@ -1,5 +1,7 @@
 type Env = {
   INBOUND: R2Bucket;
+  // Customer address -> Twenty email group forwarding address (ch_xxx@INBOUND_EMAIL_DOMAIN)
+  ROUTES?: KVNamespace;
   TWENTY_WEBHOOK_URL?: string;
   WEBHOOK_SECRET?: string;
 };
@@ -41,14 +43,24 @@ export default {
       return;
     }
 
-    const body = JSON.stringify({ key, domain, recipient, from: message.from });
+    const channelAddress = (await env.ROUTES?.get(recipient)) ?? recipient;
+    const body = JSON.stringify({
+      key,
+      recipients: [channelAddress, recipient],
+      subject: message.headers.get('subject'),
+    });
+    const timestamp = Math.floor(Date.now() / 1000).toString();
 
     ctx.waitUntil(
       fetch(env.TWENTY_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'x-khard-signature': await sign(env.WEBHOOK_SECRET, body),
+          'x-twenty-timestamp': timestamp,
+          'x-twenty-signature': await sign(
+            env.WEBHOOK_SECRET,
+            `${timestamp}.${body}`,
+          ),
         },
         body,
       }),
