@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { isDefined } from 'twenty-shared/utils';
 import { type EntityManager } from 'typeorm';
 
+import { IS_PRIVATE_COLUMN_NAME } from 'src/engine/permissions/private-record/constants/is-private-column-name.constant';
 import { InjectMessageQueue } from 'src/engine/core-modules/message-queue/decorators/message-queue.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
 import { MessageQueueService } from 'src/engine/core-modules/message-queue/services/message-queue.service';
@@ -38,7 +39,7 @@ import {
 import {
   PermissionsException,
   PermissionsExceptionCode,
-} from 'src/engine/metadata-modules/permissions/permissions.exception';
+} from 'src/engine/permissions/permissions.exception';
 import { WorkspaceOrmManager } from 'src/engine/twenty-orm/workspace-orm.manager';
 
 type BuildParticipantWriteQuery = (tables: {
@@ -57,8 +58,8 @@ const PARTICIPANT_LOCK_QUERY =
 
 // Saved as ended when already due, since its queued end may have run before this write
 const buildSnoozeQuery: BuildParticipantWriteQuery = ({ participantTable }) =>
-  `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "archivedAt", "snoozedUntil", "isSubscribed")
-   VALUES ($1, $2, CASE WHEN $3::timestamptz <= clock_timestamp() THEN NULL ELSE clock_timestamp() END, $3, true)
+  `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}", "archivedAt", "snoozedUntil", "isSubscribed")
+   VALUES ($1, $2, true, CASE WHEN $3::timestamptz <= clock_timestamp() THEN NULL ELSE clock_timestamp() END, $3, true)
    ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
      "archivedAt" = EXCLUDED."archivedAt",
      "snoozedUntil" = EXCLUDED."snoozedUntil",
@@ -85,23 +86,23 @@ const INBOX_ACTION_QUERIES: Record<
   // Read up to what the thread holds now, never past it, and never back.
   // Reading or marking unread tracks a chat without following it
   [AgentChatInboxAction.READ]: ({ participantTable, threadTable }) =>
-    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "lastReadAt", "isSubscribed")
-     SELECT thread.id, $2, thread."lastActivityAt", false FROM ${threadTable} thread WHERE thread.id = $1
+    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}", "lastReadAt", "isSubscribed")
+     SELECT thread.id, $2, true, thread."lastActivityAt", false FROM ${threadTable} thread WHERE thread.id = $1
      ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
        "lastReadAt" = GREATEST(participant."lastReadAt", EXCLUDED."lastReadAt"),
        "mentionsResolvedAt" = ${ALL_MENTIONS_RESOLVED_AT},
        "updatedAt" = ${NEXT_PARTICIPANT_UPDATED_AT}
      RETURNING *`,
   [AgentChatInboxAction.UNREAD]: ({ participantTable }) =>
-    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "lastReadAt", "isSubscribed")
-     VALUES ($1, $2, NULL, false)
+    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}", "lastReadAt", "isSubscribed")
+     VALUES ($1, $2, true, NULL, false)
      ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
        "lastReadAt" = NULL,
        "updatedAt" = ${NEXT_PARTICIPANT_UPDATED_AT}
      RETURNING *`,
   [AgentChatInboxAction.ARCHIVE]: ({ participantTable }) =>
-    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "archivedAt", "isSubscribed")
-     VALUES ($1, $2, clock_timestamp(), true)
+    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}", "archivedAt", "isSubscribed")
+     VALUES ($1, $2, true, clock_timestamp(), true)
      ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
        "archivedAt" = EXCLUDED."archivedAt",
        "snoozedUntil" = NULL,
@@ -111,8 +112,8 @@ const INBOX_ACTION_QUERIES: Record<
      RETURNING *`,
   [AgentChatInboxAction.SNOOZE]: buildSnoozeQuery,
   [AgentChatInboxAction.MOVE_TO_INBOX]: ({ participantTable }) =>
-    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId")
-     VALUES ($1, $2)
+    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}")
+     VALUES ($1, $2, true)
      ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
        "archivedAt" = NULL,
        "snoozedUntil" = NULL,
@@ -120,8 +121,8 @@ const INBOX_ACTION_QUERIES: Record<
        "updatedAt" = ${NEXT_PARTICIPANT_UPDATED_AT}
      RETURNING *`,
   [AgentChatInboxAction.SUBSCRIBE]: ({ participantTable }) =>
-    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId")
-     VALUES ($1, $2)
+    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}")
+     VALUES ($1, $2, true)
      ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
        "isSubscribed" = true,
        "updatedAt" = ${NEXT_PARTICIPANT_UPDATED_AT}
@@ -129,8 +130,8 @@ const INBOX_ACTION_QUERIES: Record<
   // Files the chat under done and keeps it there whatever happens in it,
   // until the member is mentioned or writes in it again
   [AgentChatInboxAction.UNSUBSCRIBE]: ({ participantTable }) =>
-    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "isSubscribed", "archivedAt")
-     VALUES ($1, $2, false, clock_timestamp())
+    `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}", "isSubscribed", "archivedAt")
+     VALUES ($1, $2, true, false, clock_timestamp())
      ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
        "isSubscribed" = false,
        "archivedAt" = EXCLUDED."archivedAt",
@@ -249,8 +250,8 @@ export class AgentChatThreadParticipantService {
     await this.write(
       { ...args, threadIds: [threadId] },
       ({ participantTable }) =>
-        `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "lastMentionedAt")
-         VALUES ($1, $2, clock_timestamp())
+        `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}", "lastMentionedAt")
+         VALUES ($1, $2, true, clock_timestamp())
          ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
            "lastReadAt" = NULL,
            "archivedAt" = NULL,
@@ -270,8 +271,8 @@ export class AgentChatThreadParticipantService {
     await this.write(
       { ...args, threadIds: [args.threadId] },
       ({ participantTable }) =>
-        `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId")
-         VALUES ($1, $2)
+        `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}")
+         VALUES ($1, $2, true)
          ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
            "lastReadAt" = NULL,
            "archivedAt" = NULL,
@@ -333,8 +334,8 @@ export class AgentChatThreadParticipantService {
     await this.write(
       { ...args, threadIds: [threadId] },
       ({ participantTable, threadTable }) =>
-        `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "lastReadAt")
-         SELECT thread.id, $2, CASE WHEN $3::boolean THEN thread."lastActivityAt" END
+        `INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}", "lastReadAt")
+         SELECT thread.id, $2, true, CASE WHEN $3::boolean THEN thread."lastActivityAt" END
          FROM ${threadTable} thread WHERE thread.id = $1
          ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
            "lastReadAt" = CASE WHEN $3::boolean THEN participant."lastReadAt" END,
@@ -473,8 +474,8 @@ export class AgentChatThreadParticipantService {
              WHERE id = $1
              RETURNING id, ${AGENT_CHAT_THREAD_ACTIVITY_COLUMNS}
            ), participant AS (
-             INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "lastReadAt")
-             SELECT thread.id, $2, thread."lastActivityAt" FROM thread
+             INSERT INTO ${participantTable} AS participant ("threadId", "workspaceMemberId", "${IS_PRIVATE_COLUMN_NAME}", "lastReadAt")
+             SELECT thread.id, $2, true, thread."lastActivityAt" FROM thread
              ON CONFLICT ("threadId", "workspaceMemberId") DO UPDATE SET
                "lastReadAt" = GREATEST(participant."lastReadAt", EXCLUDED."lastReadAt"),
                "archivedAt" = NULL,
@@ -560,9 +561,7 @@ export class AgentChatThreadParticipantService {
     const [summary] = await this.workspaceOrmManager
       .executeInWorkspaceContext(() => {
         const repository =
-          this.workspaceOrmManager.getRepositoryWithContextPermissions(
-            'agentChatThread',
-          );
+          this.workspaceOrmManager.getRepository('agentChatThread');
         const readableThreads = repository
           .createQueryBuilder('thread')
           .select([])
