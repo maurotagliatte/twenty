@@ -38,6 +38,9 @@ export const mapDamAssetNodeToCard = (node: DamAssetNode): DamAssetCard => ({
   kindLabel: getOptionLabel(DAM_ASSET_KIND_OPTIONS, node.kind),
   categoryLabel: getOptionLabel(DAM_ASSET_CATEGORY_OPTIONS, node.category),
   brandName: isNonEmptyString(node.brand?.name) ? node.brand.name : null,
+  kind: isNonEmptyString(node.kind) ? node.kind : null,
+  category: isNonEmptyString(node.category) ? node.category : null,
+  updatedAt: node.updatedAt ?? null,
   fileCount: node.files?.length ?? 0,
   preview: getFilePreview(node.files),
 });

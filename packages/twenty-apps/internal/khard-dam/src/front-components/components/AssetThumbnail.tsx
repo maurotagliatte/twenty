@@ -17,7 +17,7 @@ import {
   type FilePreviewKind,
 } from 'src/front-components/types/dam-asset.types';
 
-const ICON_BY_PREVIEW_KIND: Record<FilePreviewKind, IconComponent> = {
+export const ICON_BY_PREVIEW_KIND: Record<FilePreviewKind, IconComponent> = {
   IMAGE: IconPhoto,
   VIDEO: IconVideo,
   AUDIO: IconHeadphones,

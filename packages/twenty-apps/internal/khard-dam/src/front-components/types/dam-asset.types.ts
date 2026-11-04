@@ -42,8 +42,21 @@ export type DamAssetCard = {
   kindLabel: string | null;
   categoryLabel: string | null;
   brandName: string | null;
+  kind: string | null;
+  category: string | null;
+  updatedAt: string | null;
   fileCount: number;
   preview: DamFilePreview;
+};
+
+export type DamCollectionCard = {
+  id: string;
+  name: string;
+  brandName: string | null;
+  updatedAt: string | null;
+  assetCount: number;
+  cover: DamFilePreview;
+  samplePreviews: DamFilePreview[];
 };
 
 export type DamAssetSortDirection = 'DESC' | 'ASC';

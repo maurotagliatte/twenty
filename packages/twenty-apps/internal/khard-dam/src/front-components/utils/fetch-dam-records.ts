@@ -1,9 +1,11 @@
 import {
   type DamAssetCard,
   type DamAssetNode,
+  type DamCollectionCard,
   type NamedRecord,
   type RecordPage,
 } from 'src/front-components/types/dam-asset.types';
+import { getFilePreview } from 'src/front-components/utils/get-file-preview';
 import { mapDamAssetNodeToCard } from 'src/front-components/utils/map-dam-asset-node-to-card';
 
 export const DAM_ASSET_PAGE_SIZE = 24;
@@ -106,6 +108,69 @@ export const fetchDamCollectionAssetPage = async ({
       | undefined,
     (node) => (node.asset ? mapDamAssetNodeToCard(node.asset) : null),
   );
+};
+
+const COLLECTION_SAMPLE_SIZE = 4;
+const FILE_SELECTION = { fileId: true, label: true, extension: true, url: true };
+
+type DamCollectionNode = {
+  id: string;
+  name?: string | null;
+  updatedAt?: string | null;
+  brand?: { name?: string | null } | null;
+  cover?: DamAssetNode['files'];
+  collectionAssets?: {
+    totalCount?: number | null;
+    edges?: { node: { asset?: { files?: DamAssetNode['files'] } | null } }[];
+  } | null;
+};
+
+export const mapDamCollectionNodeToCard = (
+  node: DamCollectionNode,
+): DamCollectionCard => ({
+  id: node.id,
+  name: node.name?.trim() || 'Untitled',
+  brandName: node.brand?.name?.trim() || null,
+  updatedAt: node.updatedAt ?? null,
+  assetCount: node.collectionAssets?.totalCount ?? 0,
+  cover: getFilePreview(node.cover),
+  samplePreviews: (node.collectionAssets?.edges ?? [])
+    .map((edge) => getFilePreview(edge.node.asset?.files))
+    .filter((preview) => preview.kind === 'IMAGE' && preview.url !== null),
+});
+
+export const fetchDamCollectionCards = async ({
+  client,
+}: {
+  client: DamQueryClient;
+}): Promise<DamCollectionCard[]> => {
+  const result = await client.query({
+    damCollections: {
+      __args: {
+        orderBy: [{ updatedAt: 'DescNullsLast' }],
+        first: DAM_PICKER_PAGE_SIZE,
+      },
+      edges: {
+        node: {
+          id: true,
+          name: true,
+          updatedAt: true,
+          brand: { name: true },
+          cover: FILE_SELECTION,
+          collectionAssets: {
+            __args: { first: COLLECTION_SAMPLE_SIZE },
+            totalCount: true,
+            edges: { node: { asset: { files: FILE_SELECTION } } },
+          },
+        },
+      },
+    },
+  });
+
+  return toRecordPage(
+    result.damCollections as Connection<DamCollectionNode> | undefined,
+    mapDamCollectionNodeToCard,
+  ).items;
 };
 
 const toNamedRecord = (node: { id: string; name?: string | null }) => ({

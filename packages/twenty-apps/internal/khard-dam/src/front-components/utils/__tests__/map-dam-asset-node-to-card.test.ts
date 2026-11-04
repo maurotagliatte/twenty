@@ -11,6 +11,7 @@ describe('mapDamAssetNodeToCard', () => {
         status: 'APPROVED',
         kind: 'IMAGE',
         category: 'CAMPAIGN',
+        updatedAt: '2026-11-04T12:00:00.000Z',
         brand: { id: 'brand-1', name: 'Acme' },
         files: [
           { fileId: 'f', label: 'hero.jpg', extension: '.jpg', url: 'u' },
@@ -24,6 +25,9 @@ describe('mapDamAssetNodeToCard', () => {
       kindLabel: 'Image',
       categoryLabel: 'Campaign material',
       brandName: 'Acme',
+      kind: 'IMAGE',
+      category: 'CAMPAIGN',
+      updatedAt: '2026-11-04T12:00:00.000Z',
       fileCount: 1,
       preview: { kind: 'IMAGE', url: 'u', label: 'hero.jpg', extension: 'jpg' },
     });
