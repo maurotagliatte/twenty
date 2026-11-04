@@ -2,6 +2,8 @@
 import { NavigationMenuItemType, ViewType } from 'twenty-sdk/define';
 import { describe, expect, it } from 'vitest';
 
+import { DAM_OBJECT_UNIVERSAL_IDENTIFIERS } from 'src/roles/dam-object-permissions';
+
 import {
   DAM_ASSET_CATEGORY_OPTIONS,
   DAM_ASSET_STATUS_OPTIONS,
@@ -79,8 +81,11 @@ type RoleConfig = {
   universalIdentifier: string;
   canUpdateAllSettings?: boolean;
   canDestroyAllObjectRecords?: boolean;
+  canReadAllObjectRecords?: boolean;
   objectPermissions?: {
     objectUniversalIdentifier: string;
+    canReadObjectRecords?: boolean;
+    canUpdateObjectRecords?: boolean;
     canSoftDeleteObjectRecords?: boolean;
     canDestroyObjectRecords?: boolean;
   }[];
@@ -340,6 +345,24 @@ describe('roles', () => {
     expect(contributor?.objectPermissions?.length).toBeGreaterThan(0);
     for (const permission of contributor?.objectPermissions ?? []) {
       expect(permission.canSoftDeleteObjectRecords).toBe(false);
+    }
+  });
+
+  // Front components query with this role intersected with the viewer's, so a missing grant hides every record.
+  it('lets the front components read DAM objects and nothing else', () => {
+    const functionRole = ROLES.find(([path]) =>
+      path.includes('default-function'),
+    )?.[1].config;
+
+    expect(functionRole?.canReadAllObjectRecords).toBe(false);
+    expect(
+      functionRole?.objectPermissions?.map(
+        (permission) => permission.objectUniversalIdentifier,
+      ),
+    ).toEqual(DAM_OBJECT_UNIVERSAL_IDENTIFIERS);
+    for (const permission of functionRole?.objectPermissions ?? []) {
+      expect(permission.canReadObjectRecords).toBe(true);
+      expect(permission.canUpdateObjectRecords).toBe(false);
     }
   });
 });
