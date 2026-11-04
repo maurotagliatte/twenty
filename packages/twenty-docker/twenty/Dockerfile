@@ -244,7 +244,7 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
 # See twenty-server above: patched Alpine OpenSSL libs (psql/curl/redis link
 # these system libs; Node bundles its own).
 RUN apk add --no-cache \
-    postgresql18 postgresql18-contrib \
+    postgresql18 postgresql18-contrib postgresql-pgvector \
     redis \
     'libcrypto3>=3.5.8-r0' \
     'libssl3>=3.5.8-r0' \

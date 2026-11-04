@@ -40,6 +40,16 @@ $$;`,
       'create immutable unaccent wrapper function',
     );
 
+    if (await checkExtensionAvailable('vector')) {
+      await performQuery(
+        'CREATE EXTENSION IF NOT EXISTS "vector" WITH SCHEMA "public"',
+        'create extension "vector"',
+      );
+    } else {
+      // oxlint-disable-next-line no-console
+      console.warn('Extension "vector" is not installed, skipping');
+    }
+
     // We paused the work on FDW
     if (process.env.IS_FDW_ENABLED !== 'true') {
       return;
@@ -96,6 +106,17 @@ $$;`,
       await rawDataSource.destroy();
     }
   });
+
+async function checkExtensionAvailable(
+  extensionName: string,
+): Promise<boolean> {
+  const result = await rawDataSource.query(
+    `SELECT 1 FROM pg_available_extensions WHERE name = $1`,
+    [extensionName],
+  );
+
+  return result.length > 0;
+}
 
 async function checkForeignDataWrapperExists(
   wrapperName: string,

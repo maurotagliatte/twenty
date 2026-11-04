@@ -40,9 +40,9 @@ postgres-on-docker: ensure-docker-network
 	-e POSTGRES_USER=postgres \
 	-e POSTGRES_PASSWORD=postgres \
 	-e ALLOW_NOSSL=true \
-	-v twenty_db_data:/var/lib/postgresql/data \
+	-v twenty_db_data_pg18:/var/lib/postgresql \
 	-p 5432:5432 \
-	postgres:16
+	pgvector/pgvector:0.8.7-pg18
 	@echo "Waiting for PostgreSQL to be ready..."
 	@until docker exec twenty_pg psql -U postgres -d postgres \
 		-c 'SELECT pg_is_in_recovery();' 2>/dev/null | grep -q 'f'; do \

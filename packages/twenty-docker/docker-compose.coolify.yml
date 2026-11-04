@@ -109,9 +109,9 @@ services:
     exclude_from_hc: true
 
   db:
-    image: postgres:16
+    image: pgvector/pgvector:0.8.7-pg18
     volumes:
-      - twenty-pgdata:/var/lib/postgresql/data
+      - twenty-pgdata-pg18:/var/lib/postgresql
     environment:
       POSTGRES_DB: default
       POSTGRES_USER: postgres
@@ -138,7 +138,9 @@ services:
 # Volume names are intentionally different from the official compose so this
 # stack never reuses data volumes left behind by an older deployment of the
 # same Coolify app (Postgres would keep the old password).
+# The -pg18 suffix keeps a PG16 data volume from being mounted by PG18, see
+# docs/postgres-18-migration.md.
 volumes:
-  twenty-pgdata:
+  twenty-pgdata-pg18:
   twenty-local-storage:
   twenty-redis:

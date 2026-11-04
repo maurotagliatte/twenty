@@ -10,9 +10,9 @@ name: twenty-dev
 
 services:
   db:
-    image: postgres:16
+    image: pgvector/pgvector:0.8.7-pg18
     volumes:
-      - dev-db-data:/var/lib/postgresql/data
+      - dev-db-data-pg18:/var/lib/postgresql
     ports:
       - "5432:5432"
     environment:
@@ -39,4 +39,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  dev-db-data:
+  dev-db-data-pg18:
