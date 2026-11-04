@@ -4,17 +4,17 @@ import {
 } from 'twenty-sdk/define';
 
 import {
-  DRAFTS_VIEW_UNIVERSAL_IDENTIFIER,
+  WIKI_HOME_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER,
   WIKI_FOLDER_NAVIGATION_MENU_ITEM_UNIVERSAL_IDENTIFIER,
 } from 'src/constants/universal-identifiers';
 
 export default defineNavigationMenuItem({
-  universalIdentifier: 'fb47c662-7866-4a05-9e5e-2120cdbcaadd',
-  type: NavigationMenuItemType.VIEW,
-  name: 'Drafts',
-  icon: 'IconPencil',
-  viewUniversalIdentifier: DRAFTS_VIEW_UNIVERSAL_IDENTIFIER,
+  universalIdentifier: 'ed153e29-19e7-4aff-a083-2ea41f763f34',
+  type: NavigationMenuItemType.PAGE_LAYOUT,
+  name: 'Wiki home',
+  icon: 'IconHome',
+  pageLayoutUniversalIdentifier: WIKI_HOME_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER,
   folderUniversalIdentifier:
     WIKI_FOLDER_NAVIGATION_MENU_ITEM_UNIVERSAL_IDENTIFIER,
-  position: 5,
+  position: 0,
 });

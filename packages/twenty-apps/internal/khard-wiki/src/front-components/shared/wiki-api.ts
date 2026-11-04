@@ -1,8 +1,7 @@
 import { RestApiClient } from 'twenty-client-sdk/rest';
 
 import { type WikiPageStatus } from 'src/constants/wiki-options';
-import { type RichTextBody } from 'src/utils/rich-text/parse-rich-text-body';
-import { isUuid } from 'src/utils/rich-text/safe-url';
+import { isUuid } from 'src/utils/safe-url';
 import { type WikiPageSummary } from 'src/utils/wiki-page-tree';
 
 export type WikiSpace = {
@@ -12,12 +11,24 @@ export type WikiSpace = {
   description: string | null;
 };
 
+export type WikiPageOwner = {
+  id: string;
+  name: { firstName: string | null; lastName: string | null } | null;
+  avatarUrl: string | null;
+};
+
 export type WikiPageDetail = WikiPageSummary & {
-  body: RichTextBody | null;
   updatedAt: string | null;
+  updatedBy: { name: string | null } | null;
+  owner: WikiPageOwner | null;
+  cover: { url?: string | null; label?: string | null }[] | null;
   lastReviewedAt: string | null;
   nextReviewAt: string | null;
-  tags: string[] | null;
+};
+
+export type WikiSubpage = WikiPageSummary & {
+  updatedAt: string | null;
+  owner: WikiPageOwner | null;
 };
 
 type FindManyResponse<TRecord> = {
@@ -30,8 +41,11 @@ type SingleRecordResponse<TRecord> = {
 
 const PAGE_SUMMARY_FIELDS =
   'id,title,icon,status,position,parentPage,space';
+const PAGE_DETAIL_FIELDS = `${PAGE_SUMMARY_FIELDS},updatedAt,updatedBy,owner,cover,lastReviewedAt,nextReviewAt`;
+const SUBPAGE_FIELDS = `${PAGE_SUMMARY_FIELDS},updatedAt,owner`;
 const QUERY_MAX_RECORDS = 200;
 const VISIBLE_STATUSES: WikiPageStatus[] = ['DRAFT', 'PUBLISHED'];
+const VISIBLE_STATUS_FILTER = `status[in]:[${VISIBLE_STATUSES.map((status) => `"${status}"`).join(',')}]`;
 
 // Ids are interpolated into the REST filter grammar, so anything that is not a uuid is refused up front.
 const assertUuid = (value: string) => {
@@ -69,7 +83,6 @@ export const listChildPages = async ({
   spaceId: string;
   parentPageId: string | null;
 }): Promise<WikiPageSummary[]> => {
-  const statusFilter = `status[in]:[${VISIBLE_STATUSES.map((status) => `"${status}"`).join(',')}]`;
   const parentFilter =
     parentPageId === null
       ? `spaceId[eq]:"${assertUuid(spaceId)}",parentPageId[is]:NULL`
@@ -80,7 +93,7 @@ export const listChildPages = async ({
     {
       query: {
         fields: PAGE_SUMMARY_FIELDS,
-        filter: `and(${parentFilter},${statusFilter})`,
+        filter: `and(${parentFilter},${VISIBLE_STATUS_FILTER})`,
         order_by: 'position[AscNullsLast],title[AscNullsLast]',
         limit: QUERY_MAX_RECORDS,
       },
@@ -90,10 +103,56 @@ export const listChildPages = async ({
   return response.data.wikiPages ?? [];
 };
 
+export const listSubpages = async (
+  parentPageId: string,
+): Promise<WikiSubpage[]> => {
+  const response = await client().get<FindManyResponse<WikiSubpage>>(
+    '/rest/wikiPages',
+    {
+      query: {
+        fields: SUBPAGE_FIELDS,
+        depth: 1,
+        filter: `and(parentPageId[eq]:"${assertUuid(parentPageId)}",${VISIBLE_STATUS_FILTER})`,
+        order_by: 'position[AscNullsLast],title[AscNullsLast]',
+        limit: QUERY_MAX_RECORDS,
+      },
+    },
+  );
+
+  return response.data.wikiPages ?? [];
+};
+
+export const findMostRecentPageId = async (): Promise<string | null> => {
+  const response = await client().get<FindManyResponse<{ id: string }>>(
+    '/rest/wikiPages',
+    {
+      query: {
+        fields: 'id',
+        filter: VISIBLE_STATUS_FILTER,
+        order_by: 'updatedAt[DescNullsLast]',
+        limit: 1,
+      },
+    },
+  );
+
+  return response.data.wikiPages?.[0]?.id ?? null;
+};
+
+export const getWikiPageSummary = async (
+  pageId: string,
+): Promise<WikiPageSummary> =>
+  firstRecord(
+    await client().get<SingleRecordResponse<WikiPageSummary>>(
+      `/rest/wikiPages/${assertUuid(pageId)}`,
+      { query: { fields: PAGE_SUMMARY_FIELDS } },
+    ),
+  );
+
 export const getWikiPage = async (pageId: string): Promise<WikiPageDetail> =>
   firstRecord(
     await client().get<SingleRecordResponse<WikiPageDetail>>(
       `/rest/wikiPages/${assertUuid(pageId)}`,
+      { query: { fields: PAGE_DETAIL_FIELDS, depth: 1 } },
     ),
   );
 
@@ -124,6 +183,8 @@ export const createWikiPage = async (input: {
 export const updateWikiPage = async (
   pageId: string,
   patch: Partial<{
+    title: string;
+    icon: string | null;
     parentPageId: string | null;
     position: number;
     lastReviewedAt: string;

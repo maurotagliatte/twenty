@@ -45,6 +45,15 @@ export default defineObject({
       icon: 'IconMoodSmile',
     },
     {
+      universalIdentifier: WIKI_PAGE_FIELDS.cover,
+      type: FieldType.FILES,
+      name: 'cover',
+      label: 'Cover',
+      description: 'Banner image shown above the page title',
+      icon: 'IconPhoto',
+      universalSettings: { maxNumberOfValues: 1 },
+    },
+    {
       universalIdentifier: WIKI_PAGE_FIELDS.body,
       type: FieldType.RICH_TEXT,
       name: 'body',

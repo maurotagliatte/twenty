@@ -10,10 +10,11 @@ import {
   WIKI_PAGE_CONTENT_TAB_UNIVERSAL_IDENTIFIER,
   WIKI_PAGE_CONTENT_WIDGET_UNIVERSAL_IDENTIFIER,
   WIKI_PAGE_FIELDS,
+  WIKI_PAGE_HEADER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+  WIKI_PAGE_HEADER_WIDGET_UNIVERSAL_IDENTIFIER,
   WIKI_PAGE_OBJECT_UNIVERSAL_IDENTIFIER,
 } from 'src/constants/universal-identifiers';
 
-// Position 5 puts the editor ahead of the generated Home tab (10), so a page opens on its body.
 export default definePageLayoutTab({
   universalIdentifier: WIKI_PAGE_CONTENT_TAB_UNIVERSAL_IDENTIFIER,
   pageLayoutUniversalIdentifier: getSystemRecordPageLayoutUniversalIdentifier({
@@ -26,6 +27,17 @@ export default definePageLayoutTab({
   icon: 'IconFileText',
   layoutMode: PageLayoutTabLayoutMode.VERTICAL_LIST,
   widgets: [
+    {
+      universalIdentifier: WIKI_PAGE_HEADER_WIDGET_UNIVERSAL_IDENTIFIER,
+      title: ' ',
+      type: 'FRONT_COMPONENT',
+      heightBehavior: PageLayoutWidgetVerticalListHeightBehavior.FIT_CONTENT,
+      configuration: {
+        configurationType: 'FRONT_COMPONENT',
+        frontComponentUniversalIdentifier:
+          WIKI_PAGE_HEADER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+      },
+    },
     {
       universalIdentifier: WIKI_PAGE_CONTENT_WIDGET_UNIVERSAL_IDENTIFIER,
       title: 'Body',

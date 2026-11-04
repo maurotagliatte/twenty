@@ -3,11 +3,12 @@ import { NavigationMenuItemType, type ViewType } from 'twenty-sdk/define';
 import { describe, expect, it } from 'vitest';
 
 import {
-  WIKI_BROWSER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
-  WIKI_BROWSER_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER,
+  WIKI_HOME_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+  WIKI_HOME_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER,
   WIKI_FOLDER_NAVIGATION_MENU_ITEM_UNIVERSAL_IDENTIFIER,
   WIKI_PAGE_FIELDS,
   WIKI_PAGE_OBJECT_UNIVERSAL_IDENTIFIER,
+  WIKI_PAGE_TREE_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
 } from 'src/constants/universal-identifiers';
 import { WIKI_PAGE_SYSTEM_FIELDS } from 'src/constants/wiki-page-system-fields';
 
@@ -66,10 +67,16 @@ type WidgetConfig = {
   };
 };
 
-type TabConfig = { universalIdentifier: string; widgets: WidgetConfig[] };
+type TabConfig = {
+  universalIdentifier: string;
+  position?: number;
+  widgets: WidgetConfig[];
+};
 
 type PageLayoutConfig = {
   universalIdentifier: string;
+  position?: number;
+  pageLayoutUniversalIdentifier?: string;
   type?: string;
   tabs?: TabConfig[];
   widgets?: WidgetConfig[];
@@ -288,7 +295,7 @@ describe('navigation', () => {
     }
     expect(
       entries.map((entry) => entry.pageLayoutUniversalIdentifier),
-    ).toContain(WIKI_BROWSER_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER);
+    ).toContain(WIKI_HOME_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER);
   });
 });
 
@@ -297,14 +304,25 @@ describe('page layouts', () => {
     const browserLayout = PAGE_LAYOUTS.find(
       ([, { config }]) =>
         config.universalIdentifier ===
-        WIKI_BROWSER_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER,
+        WIKI_HOME_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER,
     )?.[1].config;
 
     expect(browserLayout?.type).toBe('STANDALONE_PAGE');
     expect(
       browserLayout?.tabs?.[0]?.widgets[0]?.configuration
         .frontComponentUniversalIdentifier,
-    ).toBe(WIKI_BROWSER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER);
+    ).toBe(WIKI_HOME_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER);
+  });
+
+  it('pins the page tree to the left column of the wiki page', () => {
+    const recordPageTabs = PAGE_LAYOUTS.map(([, { config }]) => config)
+      .filter((config) => config.pageLayoutUniversalIdentifier !== undefined)
+      .sort((left, right) => (left.position ?? 0) - (right.position ?? 0));
+
+    expect(
+      recordPageTabs[0]?.widgets?.[0]?.configuration
+        .frontComponentUniversalIdentifier,
+    ).toBe(WIKI_PAGE_TREE_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER);
   });
 
   it('edits the page body with the native rich text editor', () => {

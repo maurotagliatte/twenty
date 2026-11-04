@@ -4,14 +4,14 @@ import {
   IconFileText,
 } from 'twenty-ui/icon';
 
-import { type WikiBrowserStyles } from 'src/front-components/wiki-browser/build-wiki-browser-styles';
+import { type WikiStyles } from 'src/front-components/shared/build-wiki-styles';
 import { type WikiTreeRow } from 'src/utils/wiki-page-tree';
 
 type WikiPageTreeViewProps = {
   rows: WikiTreeRow[];
   selectedPageId: string | null;
   loadingPageIds: ReadonlySet<string>;
-  styles: WikiBrowserStyles;
+  styles: WikiStyles;
   onToggle: (pageId: string) => void;
   onSelect: (pageId: string) => void;
 };
