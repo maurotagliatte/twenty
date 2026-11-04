@@ -1,0 +1,62 @@
+export const APPLICATION_UNIVERSAL_IDENTIFIER =
+  '9be055c1-baef-41c7-af75-e79a55757a9d';
+
+export const DEFAULT_FUNCTION_ROLE_UNIVERSAL_IDENTIFIER =
+  '37d0a1f4-7717-40c2-acb4-e2a1e0e2e646';
+export const WIKI_EDITOR_ROLE_UNIVERSAL_IDENTIFIER =
+  '83684776-944c-427a-9efc-0d490f84284e';
+
+export const WIKI_SPACE_OBJECT_UNIVERSAL_IDENTIFIER =
+  '95e9b690-574b-466d-adcc-954fb97542f8';
+export const WIKI_SPACE_FIELDS = {
+  name: 'fea0411b-60f3-4c08-a303-4b8114c9bc71',
+  icon: '972db710-aacc-4d6d-8d29-0c283e03e8aa',
+  description: '59a9ea53-67b8-4dd4-8ad6-aeb4e7ca0c84',
+  visibility: '9364cf99-d5b6-4c9d-94b6-e3f6be2f2a63',
+  pages: '0318ef94-eb55-48d3-864e-161d2d75ad67',
+} as const;
+
+export const WIKI_PAGE_OBJECT_UNIVERSAL_IDENTIFIER =
+  'cd00a046-58b8-4cfa-8cc6-11e8eda963a5';
+export const WIKI_PAGE_FIELDS = {
+  title: 'e13c1b66-5a76-4b69-a37e-9ca1ac19e6a5',
+  icon: 'd827a23a-169d-4a4b-aa3f-5be9d77dcbc2',
+  body: '9a7c61e4-b277-4734-858c-a57309694d9c',
+  status: '10929aed-14be-41e6-be43-6f463775c283',
+  space: '7e7fb5a8-137a-4279-95ed-24a626ab6618',
+  parentPage: '7d00af50-87e7-4ebf-b086-56bde892df5b',
+  childPages: '532d83e6-ac1e-4b4e-8c67-faf1ccc7b696',
+  owner: '2f726c74-e506-44ce-8b53-6ae387eb9eb2',
+  lastReviewedAt: '3bdd896f-db6b-4639-a602-279c42217173',
+  nextReviewAt: '8bbb86da-8037-4dc1-b409-ad0d0e521d0d',
+  tags: '15d4a3c1-9a48-4c15-b6c7-7eb7bd0f2ee3',
+} as const;
+
+export const OWNED_WIKI_PAGES_ON_WORKSPACE_MEMBER_FIELD_UNIVERSAL_IDENTIFIER =
+  '4d2123f1-aead-4053-9a5f-49ad0f33b2e2';
+
+export const PAGES_BY_SPACE_VIEW_UNIVERSAL_IDENTIFIER =
+  'ba808ef7-621b-4bce-854e-51ec3071fadb';
+export const RECENTLY_UPDATED_VIEW_UNIVERSAL_IDENTIFIER =
+  '8c37ab8e-c6af-4f52-a2f5-494469ac7818';
+export const DRAFTS_VIEW_UNIVERSAL_IDENTIFIER =
+  '8a45758f-aee2-4dab-9d34-467c6c524d36';
+export const NEEDS_REVIEW_VIEW_UNIVERSAL_IDENTIFIER =
+  'd5dfb89b-c9ef-4107-9f39-4e684a64c646';
+
+export const WIKI_FOLDER_NAVIGATION_MENU_ITEM_UNIVERSAL_IDENTIFIER =
+  '5c2f19f4-0e23-4801-b819-5be9c9dcb1db';
+
+export const WIKI_BROWSER_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER =
+  '1fac9ab7-3799-4f31-ac9c-e72b6072f4da';
+export const WIKI_BROWSER_PAGE_LAYOUT_UNIVERSAL_IDENTIFIER =
+  '9b3ce670-d7c0-4e45-acdc-d1e18b5bbee7';
+export const WIKI_BROWSER_PAGE_LAYOUT_TAB_UNIVERSAL_IDENTIFIER =
+  '3cbc045e-3898-435a-8b24-3b4abffcb503';
+export const WIKI_BROWSER_PAGE_LAYOUT_WIDGET_UNIVERSAL_IDENTIFIER =
+  '3b7c88f2-4a72-44b0-a9d0-42f4d9436f27';
+
+export const WIKI_PAGE_CONTENT_TAB_UNIVERSAL_IDENTIFIER =
+  'b36e898b-3f34-4a6f-971d-c83590f6f217';
+export const WIKI_PAGE_CONTENT_WIDGET_UNIVERSAL_IDENTIFIER =
+  '5116cb75-36ac-4d2a-9892-01878f55e4fc';
