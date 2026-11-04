@@ -275,6 +275,13 @@ import { AddWebhookIdToRoleTargetFastInstanceCommand } from 'src/database/comman
 import { AddWorkspaceIframeMediaPermissionsFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793371022948-add-workspace-iframe-media-permissions';
 import { RenameWorkspaceAllowedIframeOriginsToAllowedEmbeddingOriginsFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793371022971-rename-workspace-allowed-iframe-origins-to-allowed-embedding-origins';
 import { AddRelatedRecordPathIsInherentFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793375358574-add-related-record-path-is-inherent';
+import { AddRelationFieldMetadataIdToRowLevelPermissionPredicateFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793381326752-add-relation-field-metadata-id-to-row-level-permission-predicate';
+import { IndexTemporaryFileExpirationSlowInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-slow-1793462047826-index-temporary-file-expiration';
+import { EnableUserHealthCheckFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793473469981-enable-user-health-check';
+import { AddSettingsMenuItemSlugFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793618487873-add-settings-menu-item-slug';
+import { AddApplicationRoleTargetFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-55/2-55-instance-command-fast-1793627583457-add-application-role-target';
+import { AddApplicationGrantedIframeMediaPermissionsFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-56/2-56-instance-command-fast-1793700975254-add-application-granted-iframe-media-permissions';
+import { AddRlsGrantOperationsFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-56/2-56-instance-command-fast-1793726601132-add-rls-grant-operations';
 
 export const INSTANCE_COMMANDS = [
   AddViewFieldGroupIdIndexOnViewFieldFastInstanceCommand,
@@ -552,4 +559,11 @@ export const INSTANCE_COMMANDS = [
   AddWorkspaceIframeMediaPermissionsFastInstanceCommand,
   RenameWorkspaceAllowedIframeOriginsToAllowedEmbeddingOriginsFastInstanceCommand,
   AddRelatedRecordPathIsInherentFastInstanceCommand,
+  AddRelationFieldMetadataIdToRowLevelPermissionPredicateFastInstanceCommand,
+  IndexTemporaryFileExpirationSlowInstanceCommand,
+  EnableUserHealthCheckFastInstanceCommand,
+  AddSettingsMenuItemSlugFastInstanceCommand,
+  AddApplicationRoleTargetFastInstanceCommand,
+  AddApplicationGrantedIframeMediaPermissionsFastInstanceCommand,
+  AddRlsGrantOperationsFastInstanceCommand,
 ];
