@@ -8,7 +8,7 @@
     "node": "^24.5.0",
     "npm": "please-use-yarn",
     "yarn": ">=4.0.2",
-    "twenty": ">=2.54.0"
+    "twenty": ">=2.55.0"
   },
   "keywords": [
     "twenty-app"
@@ -22,12 +22,23 @@
     "test": "vitest run --config vitest.unit.config.ts"
   },
   "devDependencies": {
+    "@sniptt/guards": "^0.2.0",
     "@types/node": "^24.7.2",
+    "@types/react": "^19.0.0",
     "@typescript/native-preview": "^7.0.0-dev.20260116.1",
     "oxlint": "^0.16.0",
-    "twenty-sdk": "2.54.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "twenty-client-sdk": "2.55.0",
+    "twenty-sdk": "2.55.0",
+    "twenty-ui": "2.55.0",
     "typescript": "^5.9.3",
     "vite-tsconfig-paths": "^4.2.1",
     "vitest": "^4.1.12"
-  }
+  },
+  "frontComponentSharedDependencies": [
+    "react",
+    "twenty-ui/primitives/data-display",
+    "twenty-ui/theme"
+  ]
 }

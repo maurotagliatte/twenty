@@ -8,6 +8,9 @@ import {
 } from 'src/constants/dam-asset-options';
 import {
   APPROVED_LIBRARY_VIEW_UNIVERSAL_IDENTIFIER,
+  ASSET_GALLERY_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+  BRAND_KIT_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+  COLLECTION_GALLERY_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
   DAM_COLLECTION_ASSET_OBJECT_UNIVERSAL_IDENTIFIER,
   DAM_FOLDER_NAVIGATION_MENU_ITEM_UNIVERSAL_IDENTIFIER,
   REVIEW_BOARD_VIEW_UNIVERSAL_IDENTIFIER,
@@ -53,6 +56,23 @@ type NavigationMenuItemConfig = {
   type: NavigationMenuItemType;
   folderUniversalIdentifier?: string;
   targetObjectUniversalIdentifier?: string;
+  pageLayoutUniversalIdentifier?: string;
+};
+
+type PageLayoutWidgetConfig = {
+  universalIdentifier: string;
+  type: string;
+  configuration: { frontComponentUniversalIdentifier?: string };
+};
+
+type PageLayoutTabConfig = {
+  universalIdentifier: string;
+  widgets: PageLayoutWidgetConfig[];
+};
+
+type PageLayoutConfig = {
+  universalIdentifier: string;
+  tabs: PageLayoutTabConfig[];
 };
 
 type RoleConfig = {
@@ -92,6 +112,22 @@ const NAVIGATION_MENU_ITEMS = loadConfigs(
     { eager: true },
   ),
 );
+const PAGE_LAYOUTS = loadConfigs(
+  import.meta.glob<Definition<PageLayoutConfig>>(
+    '../page-layouts/*.page-layout.ts',
+    { eager: true },
+  ),
+);
+const PAGE_LAYOUT_TABS = loadConfigs(
+  import.meta.glob<Definition<PageLayoutTabConfig>>(
+    '../page-layouts/*.page-layout-tab.ts',
+    { eager: true },
+  ),
+);
+const ALL_PAGE_LAYOUT_TABS: PageLayoutTabConfig[] = [
+  ...PAGE_LAYOUTS.flatMap(([, { config }]) => config.tabs),
+  ...PAGE_LAYOUT_TABS.map(([, { config }]) => config),
+];
 const ROLES = loadConfigs(
   import.meta.glob<Definition<RoleConfig>>('../roles/*.role.ts', {
     eager: true,
@@ -117,6 +153,8 @@ describe('app definitions', () => {
     ...FIELDS,
     ...VIEWS,
     ...NAVIGATION_MENU_ITEMS,
+    ...PAGE_LAYOUTS,
+    ...PAGE_LAYOUT_TABS,
     ...ROLES,
   ])('%s is valid', (_path, definition) => {
     expect(definition.errors).toEqual([]);
@@ -140,6 +178,14 @@ describe('app definitions', () => {
         ([, { config }]) => config.universalIdentifier,
       ),
       ...ROLES.map(([, { config }]) => config.universalIdentifier),
+      ...PAGE_LAYOUTS.map(([, { config }]) => config.universalIdentifier),
+      ...ALL_PAGE_LAYOUT_TABS.flatMap((tab) => [
+        tab.universalIdentifier,
+        ...tab.widgets.map((widget) => widget.universalIdentifier),
+      ]),
+      ASSET_GALLERY_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+      BRAND_KIT_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+      COLLECTION_GALLERY_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
     ];
 
     expect(new Set(identifiers).size).toBe(identifiers.length);
@@ -241,6 +287,35 @@ describe('navigation', () => {
         continue;
       }
       expect(linkedObjects).toContain(object.universalIdentifier);
+    }
+  });
+});
+
+describe('page layouts', () => {
+  it("only embeds the app's own front components", () => {
+    const frontComponentIdentifiers = [
+      ASSET_GALLERY_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+      BRAND_KIT_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+      COLLECTION_GALLERY_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+    ];
+    const widgets = ALL_PAGE_LAYOUT_TABS.flatMap((tab) => tab.widgets);
+
+    expect(widgets.length).toBeGreaterThan(0);
+    for (const widget of widgets) {
+      expect(widget.type).toBe('FRONT_COMPONENT');
+      expect(frontComponentIdentifiers).toContain(
+        widget.configuration.frontComponentUniversalIdentifier,
+      );
+    }
+  });
+
+  it('opens every standalone page layout from the sidebar', () => {
+    const linkedPageLayouts = NAVIGATION_MENU_ITEMS.map(
+      ([, { config }]) => config.pageLayoutUniversalIdentifier,
+    );
+
+    for (const [, { config }] of PAGE_LAYOUTS) {
+      expect(linkedPageLayouts).toContain(config.universalIdentifier);
     }
   });
 });
