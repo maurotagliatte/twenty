@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { type AggregateOperations } from 'twenty-shared/types';
@@ -36,6 +37,8 @@ import { withResolvedToolAuthContext } from 'src/engine/core-modules/tool-provid
 import { type ToolOutput } from 'src/engine/core-modules/tool/types/tool-output.type';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
+import { AGENT_TOOL_EXECUTED_EVENT_NAME } from 'src/engine/subscriptions/agent-presence-event/constants/agent-tool-executed-event-name.constant';
+import { type AgentToolExecutedEvent } from 'src/engine/subscriptions/agent-presence-event/types/agent-tool-executed-event.type';
 
 @Injectable()
 export class ToolExecutorService {
@@ -59,6 +62,7 @@ export class ToolExecutorService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private readonly exceptionHandlerService: ExceptionHandlerService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async dispatch(
@@ -70,7 +74,7 @@ export class ToolExecutorService {
       const executionContext = await (context.resolveExecutionContext?.() ??
         context);
 
-      return await withResolvedToolAuthContext(
+      const output = await withResolvedToolAuthContext(
         {
           context: executionContext,
           userRepository: this.userRepository,
@@ -79,6 +83,15 @@ export class ToolExecutorService {
         (contextWithAuth) =>
           this.dispatchByExecutionRef(descriptor, args ?? {}, contextWithAuth),
       );
+
+      this.emitAgentToolExecuted({
+        descriptor,
+        args: args ?? {},
+        context: executionContext,
+        output,
+      });
+
+      return output;
     } catch (error) {
       const { output, shouldCapture } = buildToolExecutionFailure({
         error,
@@ -93,6 +106,38 @@ export class ToolExecutorService {
 
       return output;
     }
+  }
+
+  private emitAgentToolExecuted({
+    descriptor,
+    args,
+    context,
+    output,
+  }: {
+    descriptor: ToolIndexEntry | ToolDescriptor;
+    args: Record<string, unknown>;
+    context: ToolProviderContext;
+    output: ToolOutput;
+  }): void {
+    const { executionRef } = descriptor;
+
+    const event: AgentToolExecutedEvent = {
+      workspaceId: context.workspaceId,
+      userWorkspaceId: context.userWorkspaceId,
+      agentId: context.agentId,
+      toolName: descriptor.name,
+      args,
+      output,
+      databaseCrud:
+        executionRef.kind === 'database_crud'
+          ? {
+              objectNameSingular: executionRef.objectNameSingular,
+              operation: executionRef.operation,
+            }
+          : undefined,
+    };
+
+    this.eventEmitter.emit(AGENT_TOOL_EXECUTED_EVENT_NAME, event);
   }
 
   private async dispatchByExecutionRef(

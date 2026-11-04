@@ -1,6 +1,8 @@
+import { styled } from '@linaria/react';
 import { isNonEmptyString } from '@sniptt/guards';
 import { Fragment, type ReactNode } from 'react';
 
+import { buildAgentPresenceTargetKey } from '@/agent-presence/utils/buildAgentPresenceTargetKey';
 import { isLayoutCustomizationModeEnabledState } from '@/layout-customization/states/isLayoutCustomizationModeEnabledState';
 import { lastClickedNavigationMenuItemIdState } from '@/navigation-menu-item/common/states/lastClickedNavigationMenuItemIdState';
 import { recordIdentifierToObjectRecordIdentifier } from '@/navigation-menu-item/common/utils/recordIdentifierToObjectRecordIdentifier';
@@ -33,6 +35,10 @@ import { useTheme, themeCssVariables } from 'twenty-ui/theme';
 import { type NavigationMenuItem } from '~/generated-metadata/graphql';
 import { getAbsoluteImageUrl } from '~/utils/image/getAbsoluteImageUrl';
 import { useLingui } from '@lingui/react/macro';
+
+const StyledAgentPresenceAnchor = styled.div`
+  display: contents;
+`;
 
 export type NavigationDrawerItemForObjectMetadataItemProps = {
   objectMetadataItem: EnrichedObjectMetadataItem;
@@ -180,36 +186,43 @@ export const NavigationDrawerItemForObjectMetadataItem = ({
     isLayoutCustomizationModeEnabled && !canReadObjectRecords;
 
   return (
-    <NavigationDrawerItem
-      label={label}
-      secondaryLabel={secondaryLabel}
-      to={
-        isLayoutCustomizationModeEnabled || isDragging
-          ? undefined
-          : shouldNavigate
-            ? navigationPath
-            : undefined
-      }
-      onClick={handleClick}
-      Icon={Icon}
-      active={isActive}
-      isSelectedInEditMode={isSelectedInEditMode}
-      isDragging={isDragging}
-      triggerEvent={isLayoutCustomizationModeEnabled ? 'CLICK' : undefined}
-      alwaysShowRightOptions={showInaccessibleLock}
-      rightOptions={
-        showInaccessibleLock ? (
-          <Fragment>
-            <IconLock
-              size={theme.icon.size.sm}
-              stroke={theme.icon.stroke.sm}
-              color={themeCssVariables.font.color.tertiary}
-            />
-          </Fragment>
-        ) : (
-          rightOptions
-        )
-      }
-    />
+    <StyledAgentPresenceAnchor
+      data-agent-presence-target={buildAgentPresenceTargetKey(
+        'navigation-object',
+        objectMetadataItem.nameSingular,
+      )}
+    >
+      <NavigationDrawerItem
+        label={label}
+        secondaryLabel={secondaryLabel}
+        to={
+          isLayoutCustomizationModeEnabled || isDragging
+            ? undefined
+            : shouldNavigate
+              ? navigationPath
+              : undefined
+        }
+        onClick={handleClick}
+        Icon={Icon}
+        active={isActive}
+        isSelectedInEditMode={isSelectedInEditMode}
+        isDragging={isDragging}
+        triggerEvent={isLayoutCustomizationModeEnabled ? 'CLICK' : undefined}
+        alwaysShowRightOptions={showInaccessibleLock}
+        rightOptions={
+          showInaccessibleLock ? (
+            <Fragment>
+              <IconLock
+                size={theme.icon.size.sm}
+                stroke={theme.icon.stroke.sm}
+                color={themeCssVariables.font.color.tertiary}
+              />
+            </Fragment>
+          ) : (
+            rightOptions
+          )
+        }
+      />
+    </StyledAgentPresenceAnchor>
   );
 };

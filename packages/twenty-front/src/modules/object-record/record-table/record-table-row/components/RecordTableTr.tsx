@@ -1,3 +1,4 @@
+import { buildAgentPresenceTargetKey } from '@/agent-presence/utils/buildAgentPresenceTargetKey';
 import { getBasePathToShowPage } from '@/object-metadata/utils/getBasePathToShowPage';
 import { useIsRecordDeleted } from '@/object-record/record-field/ui/hooks/useIsRecordDeleted';
 import { useRecordTableContextOrThrow } from '@/object-record/record-table/contexts/RecordTableContext';
@@ -79,6 +80,10 @@ export const RecordTableTr = forwardRef<HTMLDivElement, RecordTableTrProps>(
           className="table-row"
           isDragging={isDragging}
           ref={ref}
+          data-agent-presence-target={buildAgentPresenceTargetKey(
+            'record',
+            recordId,
+          )}
           data-active={isRecordTableRowActive}
           data-focused={
             isRecordTableRowFocusActive &&

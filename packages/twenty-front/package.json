@@ -146,8 +146,8 @@
     "use-debounce": "^10.0.0",
     "uuid": "^11.1.1",
     "xlsx-ugnis": "^0.19.3",
-    "y-protocols": "^1.0.6",
-    "yjs": "^13.6.27",
+    "y-protocols": "1.0.7",
+    "yjs": "13.6.33",
     "zod": "^4.6.6"
   },
   "devDependencies": {

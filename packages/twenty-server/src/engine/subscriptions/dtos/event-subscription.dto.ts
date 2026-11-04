@@ -2,6 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 import { JobStatusDTO } from 'src/engine/core-modules/message-queue/dtos/job-status.dto';
 
+import { AgentPresenceEventDTO } from './agent-presence-event.dto';
 import { MetadataEventDTO } from './metadata-event.dto';
 import { ObjectRecordEventDTO } from './object-record-event.dto';
 
@@ -27,4 +28,7 @@ export class EventSubscriptionDTO {
 
   @Field(() => [JobStatusDTO])
   queueJobEvents: JobStatusDTO[];
+
+  @Field(() => [AgentPresenceEventDTO])
+  agentPresenceEvents: AgentPresenceEventDTO[];
 }

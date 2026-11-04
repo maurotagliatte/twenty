@@ -230,6 +230,24 @@ export type AgentMessageReactionSummary = {
   workspaceMemberIds: Array<Scalars['UUID']['output']>;
 };
 
+export type AgentPresenceEvent = {
+  __typename?: 'AgentPresenceEvent';
+  action: Scalars['String']['output'];
+  agentId?: Maybe<Scalars['String']['output']>;
+  agentName?: Maybe<Scalars['String']['output']>;
+  emittedAt: Scalars['Float']['output'];
+  fieldLabel?: Maybe<Scalars['String']['output']>;
+  fieldMetadataId?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  objectLabel?: Maybe<Scalars['String']['output']>;
+  objectMetadataId?: Maybe<Scalars['String']['output']>;
+  objectNameSingular?: Maybe<Scalars['String']['output']>;
+  recordId?: Maybe<Scalars['String']['output']>;
+  targetKind: Scalars['String']['output'];
+  toolName: Scalars['String']['output'];
+  viewId?: Maybe<Scalars['String']['output']>;
+};
+
 export type AgentRun = {
   __typename?: 'AgentRun';
   createdAt: Scalars['DateTime']['output'];
@@ -2440,6 +2458,7 @@ export enum EventLogTable {
 
 export type EventSubscription = {
   __typename?: 'EventSubscription';
+  agentPresenceEvents: Array<AgentPresenceEvent>;
   eventStreamId: Scalars['String']['output'];
   metadataEvents: Array<MetadataEvent>;
   objectRecordEventsWithQueryIds: Array<ObjectRecordEventWithQueryIds>;
@@ -2461,6 +2480,7 @@ export type FeatureFlag = {
 
 export enum FeatureFlagKey {
   IS_AGENT_CHAT_DIRECT_MESSAGE_IDENTITY_ENABLED = 'IS_AGENT_CHAT_DIRECT_MESSAGE_IDENTITY_ENABLED',
+  IS_AGENT_UI_PRESENCE_ENABLED = 'IS_AGENT_UI_PRESENCE_ENABLED',
   IS_AI_CHAT_COMPONENT_BUILDER_ENABLED = 'IS_AI_CHAT_COMPONENT_BUILDER_ENABLED',
   IS_AI_CHAT_INBOX_ENABLED = 'IS_AI_CHAT_INBOX_ENABLED',
   IS_APP_PREFERENCES_ENABLED = 'IS_APP_PREFERENCES_ENABLED',

@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { Outlet } from 'react-router-dom';
 
+import { AgentPresenceProvider } from '@/agent-presence/components/AgentPresenceProvider';
 import { AgentChatProvider } from '@/ai/components/AgentChatProvider';
 import { TrackPageViewEffect } from '@/analytics/components/TrackPageViewEffect';
 import { SharedAppProviders } from '@/app/components/SharedAppProviders';
@@ -64,6 +65,7 @@ export const WorkspaceAppProviders = () => {
                     value={{ instanceId: MAIN_CONTEXT_STORE_INSTANCE_ID }}
                   >
                     <AppToaster />
+                    <AgentPresenceProvider />
                     <ErrorMessageEffect />
                     <AgentChatProvider>
                       <DialogComponentInstanceContext.Provider
