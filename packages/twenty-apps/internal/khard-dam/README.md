@@ -31,23 +31,33 @@ rights, still active" view is available from the Assets view picker.
 "Asset browser" (first entry of the DAM & BAM folder) is a standalone page with
 three tabs, each a front component:
 
-- Gallery: thumbnail grid of assets, 24 per page with "Load more", filtered by
+- Gallery: preview cards of assets, 24 per page with "Load more", filtered by
   brand, status, category, kind, tag and a search over name, description and
   keywords, sorted by last update. A card opens the asset's record page.
 - Brand kits: a brand's primary logo, color swatches (hex codes parsed from the
   Colors list), fonts, tone of voice and its approved assets.
-- Collections: a collection's assets as a grid.
+- Collections: a grid of collection cards (cover, or a mosaic of the first
+  four images, with asset count, brand and last update). Opening one shows its
+  assets in place, with a way back to all collections.
 
 Brand records also get a "Brand kit" tab and collection records a "Gallery" tab.
-The thumbnail is the first file of `files`; images render as `img`, videos as a
-muted `video` frame, anything else as a file-type icon. Data is read with the
-viewer's own token (their role intersected with the app's), so record and
-field permissions apply, and file URLs are the signed URLs the API returns with
-each record.
+
+Cards share one layout (`PreviewCard`): a backdrop tinted by file type (gray
+photo, violet logo or vector, blue document, orange presentation, tomato
+video), a sheet holding the preview that runs off the bottom edge, and a footer
+with the type icon, title, status dot, brand and relative date. Photos and
+video frames fill the sheet, graphics sit centered on white, PDFs and
+presentations show a document or slide skeleton (components cannot render a
+PDF page). Without a file the asset's declared kind picks the tone and icon.
+
+Data is read with the viewer's own token (their role intersected with the
+app's), so record and field permissions apply, and file URLs are the signed
+URLs the API returns with each record.
 
 ## Roles
 
-- `DAM & BAM function role`: the app's own role, with no access.
+- `DAM & BAM function role`: the front components' ceiling, read-only on the
+  four DAM objects. Without it every component query is denied.
 - `Brand manager`: reads the CRM; creates, edits and deletes assets, collections and brands.
 - `Asset contributor`: reads the CRM; creates and edits assets and collections; brands are read-only; cannot delete.
 
