@@ -4,7 +4,6 @@ import { isDefined } from 'twenty-shared/utils';
 import { ProvisionedWorkspaceCommandRunner } from 'src/database/commands/command-runners/provisioned-workspace.command-runner';
 import { WorkspaceIteratorService } from 'src/database/commands/command-runners/workspace-iterator.service';
 import { type RunOnWorkspaceArgs } from 'src/database/commands/command-runners/workspace.command-runner';
-import { applyInstanceSchemaSkippedByUpgradeCursor } from 'src/database/commands/upgrade-version-command/2-56/utils/apply-instance-schema-skipped-by-upgrade-cursor.util';
 import { RegisteredWorkspaceCommand } from 'src/engine/core-modules/upgrade/decorators/registered-workspace-command.decorator';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
 
@@ -77,15 +76,6 @@ export class ConvertWorkflowNavigationMenuItemsToNativePageCommand extends Provi
   }: RunOnWorkspaceArgs): Promise<void> {
     if (!isDefined(dataSource)) {
       return;
-    }
-
-    // This command is the first 2.56 workspace step after the fork cursor, and
-    // it writes nativePageKey. The fast commands that add that column are
-    // behind the cursor on preview, so apply them before the update.
-    if (!options.dryRun) {
-      await applyInstanceSchemaSkippedByUpgradeCursor((sql) =>
-        dataSource.query(sql),
-      );
     }
 
     const parameters = [workspaceId, WORKFLOW_OBJECT_UNIVERSAL_IDENTIFIER];
