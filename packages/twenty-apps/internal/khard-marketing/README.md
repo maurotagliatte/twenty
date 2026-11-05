@@ -6,8 +6,10 @@ connected accounts; this app only declares the providers and reads the assets.
 
 | Provider | Type | Redirect URI to register |
 | --- | --- | --- |
-| `google-marketing` | OAuth 2.0, refreshed by Twenty | `https://app.khard.cloud/auth/apps/callback` |
-| `meta` | Custom flow, 60-day long-lived token | `https://app.khard.cloud/auth/apps/custom/callback` |
+| `google-marketing` | OAuth 2.0, refreshed by Twenty | `<SERVER_URL>/auth/apps/callback` |
+| `meta` | Custom flow, 60-day long-lived token | `<SERVER_URL>/auth/apps/custom/callback` |
+
+`SERVER_URL` is the public origin of that environment (`https://app.khard.cloud` in production, `https://twenty-dev.khard.cloud` in dev). Register each environment's origin on the OAuth client; the code reads `TWENTY_API_URL` and does not hardcode a host.
 
 Logic functions (also exposed as AI tools and workflow actions):
 

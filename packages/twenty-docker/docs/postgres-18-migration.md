@@ -2,6 +2,17 @@
 
 Runbook for moving an existing `docker-compose.coolify.yml` deployment from `postgres:16` to `pgvector/pgvector:0.8.7-pg18`.
 
+Live layout this procedure was written against (2026-11-05):
+
+| | twenty-production | twenty-preview |
+| --- | --- | --- |
+| Branch Coolify deploys | `main` | `dev` |
+| Public URL | https://app.khard.cloud | https://twenty-dev.khard.cloud |
+| Compose on that branch | `postgres:16`, volume `twenty-pgdata` at `/var/lib/postgresql/data` | `pgvector/pgvector:0.8.7-pg18`, volume `twenty-pgdata-pg18` at `/var/lib/postgresql` |
+| Multi-workspace | on (`FRONTEND_URL=https://khard.cloud`, `DEFAULT_SUBDOMAIN=app`) | off |
+
+Coolify prefixes volume and container names with the resource UUID. `twenty-pgdata` below means that prefixed volume. Deploying the `dev` compose onto production does not open the old files: it creates `twenty-pgdata-pg18` empty. Turn off automatic deployment of `main` before merging, and do not start `server` or `worker` until step 6.
+
 PG16 data files cannot be opened by PG18, so this is a logical dump and restore, not an in-place swap. The old volume is never modified, which makes rollback a redeploy of the previous compose.
 
 ## Why the volume name changes
@@ -11,7 +22,8 @@ The official image changed its layout in 18: data now lives in `/var/lib/postgre
 ## 0. Before you start
 
 - Plan a maintenance window: server and worker are stopped from step 2 until step 6.
-- Note the current Twenty image tag. Deploy the PG18 compose with the **same** Twenty version first, upgrade Twenty separately afterwards.
+- In Coolify, disable automatic deployment of `twenty-production` before `main` contains this compose. A deploy that races the restore creates the empty database described above.
+- Note the current Twenty image tag. Deploy the PG18 compose with the **same** Twenty version first, upgrade Twenty separately afterwards. On this fork the compose and the app image are the same commit, so stop `server` and `worker` again the moment the new `db` is healthy and before they finish booting.
 - Find the real names on the host (Coolify prefixes them with the resource UUID):
 
 ```bash
