@@ -1,3 +1,9 @@
+import {
+  buildInboundObjectKey,
+  buildWebhookRecipients,
+  toAsciiObjectMetadata,
+} from './inbound-mail';
+
 type Env = {
   INBOUND: R2Bucket;
   // Customer address -> Twenty email group forwarding address (ch_xxx@INBOUND_EMAIL_DOMAIN)
@@ -23,48 +29,79 @@ const sign = async (secret: string, body: string) => {
     .join('');
 };
 
+const notifyTwenty = async ({
+  env,
+  key,
+  recipient,
+  subject,
+}: {
+  env: Env;
+  key: string;
+  recipient: string;
+  subject: string | null;
+}) => {
+  const webhookUrl = env.TWENTY_WEBHOOK_URL;
+  const webhookSecret = env.WEBHOOK_SECRET;
+  const webhookConfigured = Boolean(webhookUrl) || Boolean(webhookSecret);
+
+  // Store-only until both are set. A half-configured webhook must fail the
+  // delivery so Email Routing retries instead of dropping the mail.
+  if (!webhookConfigured) {
+    return;
+  }
+
+  if (!webhookUrl || !webhookSecret) {
+    throw new Error(
+      'TWENTY_WEBHOOK_URL and WEBHOOK_SECRET must be set together',
+    );
+  }
+
+  const channelAddress = (await env.ROUTES?.get(recipient)) ?? recipient;
+  const body = JSON.stringify({
+    key,
+    recipients: buildWebhookRecipients({ recipient, channelAddress }),
+    subject,
+  });
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const response = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-twenty-timestamp': timestamp,
+      'x-twenty-signature': await sign(webhookSecret, `${timestamp}.${body}`),
+    },
+    body,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Twenty inbound webhook rejected the message: HTTP ${response.status}`,
+    );
+  }
+};
+
 export default {
-  async email(message, env, ctx) {
+  async email(message, env) {
     const recipient = message.to.toLowerCase();
-    const domain = recipient.split('@')[1];
-    const key = `${domain}/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.eml`;
+    const subject = message.headers.get('subject');
+    const key = buildInboundObjectKey({
+      recipient,
+      messageId: message.headers.get('message-id'),
+      randomId: crypto.randomUUID(),
+    });
     const raw = await new Response(message.raw).arrayBuffer();
 
     await env.INBOUND.put(key, raw, {
       customMetadata: {
-        from: message.from,
-        to: recipient,
-        subject: message.headers.get('subject') ?? '',
+        from: toAsciiObjectMetadata(message.from),
+        to: toAsciiObjectMetadata(recipient),
+        subject: toAsciiObjectMetadata(subject ?? ''),
       },
     });
 
-    // Webhook stays off until Twenty has the CLOUDFLARE_R2 inbound source
-    if (!env.TWENTY_WEBHOOK_URL || !env.WEBHOOK_SECRET) {
-      return;
-    }
-
-    const channelAddress = (await env.ROUTES?.get(recipient)) ?? recipient;
-    const body = JSON.stringify({
-      key,
-      recipients: [channelAddress, recipient],
-      subject: message.headers.get('subject'),
-    });
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-
-    ctx.waitUntil(
-      fetch(env.TWENTY_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-twenty-timestamp': timestamp,
-          'x-twenty-signature': await sign(
-            env.WEBHOOK_SECRET,
-            `${timestamp}.${body}`,
-          ),
-        },
-        body,
-      }),
-    );
+    // Awaited on purpose: waitUntil would already have accepted the message,
+    // so a failed webhook would never be retried.
+    await notifyTwenty({ env, key, recipient, subject });
   },
 
   async fetch() {
