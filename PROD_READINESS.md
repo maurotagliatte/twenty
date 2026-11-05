@@ -1,8 +1,8 @@
 # Prontidão para produção — fork Khard (`dev`)
 
-Revisão feita em 2026-11-05, na branch `cursor/prod-readiness-4c83`, a partir de `dev`.
-Nenhum deploy, restart ou alteração foi feito em Coolify, nem em `dev`/`main` remotos.
-O PR aponta para `dev`, não para `main`.
+Revisão feita em 2026-11-05. O primeiro PR (`#3`) já está em `dev`.
+Esta atualização cobre o merge de `twentyhq/twenty` `main` (97 commits à frente do `dev` dessa data; o `main` do fork estava 75) e o cursor de upgrade.
+Nenhum deploy foi feito no Coolify. O PR aponta para `dev`.
 
 ## O que foi testado
 
@@ -27,6 +27,24 @@ Banco do zero, no Postgres 18 local:
 3. `workspace:seed:dev` sincronizou o workspace (2 workspaces em `core.workspace`).
 4. O servidor subiu e `GET /healthz` respondeu `{"status":"ok"}`.
 5. A rota `POST /webhooks/messaging/cloudflare/inbound` foi registrada.
+
+### Depois do merge de `twentyhq/main`
+
+| Pacote | Typecheck | Lint | Testes | Build |
+| --- | --- | --- | --- | --- |
+| `twenty-server` | passou | passou (0 erros, 6 avisos já existentes) | 1793 suítes / 12853 testes passaram. Só falharam os 2 testes de `local.driver` descritos acima | `nx build` passou; o servidor subiu |
+| `twenty-front` | passou | passou (0 erros, 26 avisos já existentes) | 1688 suítes / 9547 testes passaram | passou (`built in 43.29s`) |
+| os quatro apps Khard | passou | passou | marketing 4, whatsapp 38, dam 108, wiki 59 | não republicados nesta rodada; o `app build` anterior continua válido para o código dos apps, que o merge não alterou |
+
+Postgres 18 do zero, com `IS_MULTIWORKSPACE_ENABLED=true`, `DEFAULT_SUBDOMAIN=app`, `FRONTEND_URL=http://khard.test:3001`, `SERVER_URL=http://app.khard.test:3000`:
+
+1. `setup-db` criou `vector`.
+2. `run-instance-commands --force --include-slow` concluiu. Ficaram gravados `AddToolsToMcpServer`, `CreateBillingArrangementTable`, `EnableVectorExtension`, `AddNativePageNavigationMenuItem` e `ReplayInstanceSchemaSkippedByUpgradeCursor`. Colunas `mcpServer.tools`, enum `NATIVE_PAGE` e `fieldMetadataOption` existem. `billingArrangement` não foi criada porque não há `billingCustomer` (o comando upstream também não cria).
+3. `workspace:seed:dev` na primeira tentativa parou antes dos objetos do workspace: o Redis ainda tinha cache do banco anterior. Com `FLUSHALL`, o seed criou `workspaceMember` e o login passou.
+4. `GET /healthz` no host `app.khard.test` respondeu ok.
+5. `signIn` de `tim@apple.dev` devolveu o workspace Apple em `http://apple.khard.test:3001/`.
+6. `getAuthTokensFromLoginToken` aceitou `origin=http://apple.khard.test:3001` e recusou `nope.khard.test` e `app.khard.test` (`Workspace not found`).
+7. `findManyApplications` nesse token devolveu Standard e Custom.
 
 A suíte Jest de integração do comando `vector` não rodou: ela sobe o harness completo. O mesmo SQL rodou de verdade no cluster novo, e o spec unitário do comando passou.
 
@@ -73,11 +91,8 @@ O preview foi exercitado com multi-workspace desligado. O código dos apps não 
 ## Riscos que ainda ficam
 
 1. **Crítico — banco vazio.** Deploy do compose novo na produção sem dump/restore. Ver bloqueio acima.
-2. **Crítico — cursor de upgrade.** `dev` está 75 commits atrás de `main`. O comando `vector` tem timestamp `1793779918381`. Dois comandos que estão só no `main` ordenam **antes** dele e seriam pulados para sempre se o `vector` rodar primeiro no banco de produção:
-   - `1793760000000` `add-tools-to-mcp-server`
-   - `1793777543826` `create-billing-arrangement-table`
-   Comandos do `main` com timestamp maior que `1793779918381` ainda rodariam depois. Não aplique este upgrade na produção antes de integrar esses 75 commits no mesmo release.
-3. **Alto — multi-workspace não testado com os apps.** Repetir no preview, com a flag ligada, o login em `app`, um workspace `<cliente>.khard.cloud`, um OAuth e um webhook, antes de promover.
+2. **Cursor de upgrade — tratado neste PR.** Ver a seção abaixo. O que continua de pé: não promover sem o dump/restore do Postgres, e repetir no preview o OAuth e um webhook de verdade.
+3. **Alto — multi-workspace no preview ainda está desligado.** O teste local com a flag ligada passou (login, URL do workspace, troca de token só na origem certa). Falta aplicar as variáveis e o DNS do preview, descritos mais abaixo, e então um OAuth e um webhook nesse host.
 4. **Alto — segredos novos ausentes na produção.** A lista abaixo não está no app `twenty-production`. Sem eles os apps instalam e as rotas existem, mas conexão e inbound não funcionam. O webhook Cloudflare recusa entrega se `CLOUDFLARE_EMAIL_WEBHOOK_SECRET` estiver vazio (falha fechada). O WhatsApp recusa o POST sem `META_APP_SECRET`.
 5. **Alto — WhatsApp ainda não está pronto para cliente externo.** App Review, Tech Provider, `account_update` e Data Use Checkup seguem abertos no `KHARD.md`. Embedded Signup no preview não autoriza produção.
 6. **Médio — Worker ainda no comportamento antigo até um `wrangler deploy`.** O código desta branch só vale depois do deploy do Worker. Enquanto `TWENTY_WEBHOOK_URL` / `WEBHOOK_SECRET` estiverem vazios, o Worker só guarda o `.eml` no R2.
@@ -92,6 +107,47 @@ Assinaturas revistas, sem mudança de código além do que está acima:
 - Cloudflare inbound: HMAC-SHA256 de `${timestamp}.${body}`, janela de 5 minutos, sem segredo a rota recusa. O Worker assina o mesmo formato.
 
 Não achei segredo hardcoded. `khard/edge-worker/wrangler.jsonc` tem o `account_id` da Cloudflare (identificador da conta, não uma chave).
+
+## Merge do upstream e o cursor
+
+`yarn command:prod upgrade` (o entrypoint) não recomeça do zero. Ele acha o último comando gravado em `core.upgradeMigration` e segue **depois** dele na sequência. Dentro de cada versão a ordem é: todos os fast, depois os slow, depois os de workspace. Um banco que já concluiu qualquer comando de workspace da 2.56 não volta para um fast command novo, qualquer que seja o timestamp.
+
+No preview o último comando da 2.56 anterior ao merge é `repair-application-dependency-checksums` (`1793720039867`). No produção, se o `main` do fork já tiver sido deployado, o cursor está ainda mais à frente (`add-message-attachment-target`, `1793876432369`). Nos dois casos os fast commands novos ficam para trás do cursor:
+
+- preview pula o DDL do upstream (`mcpServer.tools`, `billingArrangement`, `nativePageKey` / enum `NATIVE_PAGE`, `availabilityCoreObjectName`, `aiChatAssistantProfile`, `fieldMetadataOption`, `roleTarget.targetApplicationId`) e também o `vector` se ele não tivesse rodado;
+- produção que já rodou esses fast commands pula o `vector`, que só existe neste fork.
+
+Re-timestamp do `vector` não resolve: ele continuaria no grupo fast, antes dos comandos de workspace já gravados. Apagar o registro antigo no preview também não é seguro daqui.
+
+O comando de workspace `1793895100000` (`replay-instance-schema-skipped-by-upgrade-cursor`) é o último da 2.56, então os dois cursores chegam nele. O SQL é o dos fast commands, com `IF NOT EXISTS` / checagem de catálogo, inclusive `CREATE EXTENSION IF NOT EXISTS vector`. Rodar de novo não duplica coluna nem enum. O mesmo SQL roda no início de `convert-workflow-navigation-menu-items-to-native-page`, que é o primeiro comando de workspace novo e grava `nativePageKey` — sem a coluna, o preview quebraria antes de chegar no replay.
+
+Num banco novo os fast commands originais rodam na ordem (upstream antes do `vector`) e o replay só confirma. Foi o que aconteceu no Postgres 18 local: `AddToolsToMcpServer`, `CreateBillingArrangementTable`, `EnableVectorExtension`, `AddNativePageNavigationMenuItem` e o replay ficaram gravados. `billingArrangement` não é criada quando não existe `billingCustomer` (o comando upstream também sai assim; instância sem billing).
+
+## Preview no mesmo modo multi-workspace da produção
+
+O host de hoje, `https://twenty-dev.khard.cloud`, é um nome só. Com a flag ligada o Twenty prefixa `DEFAULT_SUBDOMAIN` no hostname de `FRONTEND_URL`. Se `FRONTEND_URL` for `https://twenty-dev.khard.cloud` e `DEFAULT_SUBDOMAIN` for `app`, o login padrão passa a ser `https://app.twenty-dev.khard.cloud` e cada workspace `https://<slug>.twenty-dev.khard.cloud`. Não use `FRONTEND_URL=https://khard.cloud` no preview: os workspaces cairiam no mesmo domínio da produção.
+
+No app Coolify `twenty-preview`:
+
+| Variável | Valor |
+| --- | --- |
+| `IS_MULTIWORKSPACE_ENABLED` | `true` |
+| `DEFAULT_SUBDOMAIN` | `app` |
+| `FRONTEND_URL` | `https://twenty-dev.khard.cloud` |
+| `SERVER_URL` | `https://app.twenty-dev.khard.cloud` |
+| `TWENTY_WORKSPACE_ROUTER_RULE` | ``HostRegexp(`^[a-z0-9-]+[.]twenty-dev[.]khard[.]cloud`)`` |
+| `LOGIC_FUNCTION_TYPE` | vazio continua valendo `LOCAL` pelo `:-` do compose; pode gravar `LOCAL` para ficar explícito |
+
+`SERVER_URL` muda. Callbacks OAuth, o webhook do WhatsApp e o webhook de e-mail do preview passam a usar `https://app.twenty-dev.khard.cloud`, não o host antigo. Atualize os consoles da Meta e do Google antes de testar conexão.
+
+DNS e proxy, no domínio de dev, não no de produção:
+
+- Registro curinga `*.twenty-dev.khard.cloud` (e `app.twenty-dev.khard.cloud`) para o mesmo origin do Coolify. Na Cloudflare, proxy laranja exige certificado que cubra o curinga, ou um certificado avançado `*.twenty-dev.khard.cloud`.
+- No Coolify, o domínio principal do app passa a ser `app.twenty-dev.khard.cloud` (é o `SERVER_URL`). O router explícito desse host tem prioridade maior que o catch-all.
+- A regra Traefik acima entrega os outros subdomínios no mesmo serviço, porta 3000. "Escape special characters in labels" segue desligado, senão o regexp quebra.
+- Não há porta publicada no compose; o Traefik do Coolify continua na frente.
+
+Teste local equivalente (`FRONTEND_URL=http://khard.test:3001`, `DEFAULT_SUBDOMAIN=app`, `SERVER_URL=http://app.khard.test:3000`): o login devolveu o workspace Apple em `http://apple.khard.test:3001/`. A troca do login token por access token só funcionou com `origin` `http://apple.khard.test:3001`. `http://nope.khard.test:3001` e `http://app.khard.test:3001` responderam `Workspace not found`. `findManyApplications` nesse workspace devolveu Standard e Custom. Os quatro apps Khard compilam (`typecheck`, lint, testes); não foram instalados nesse workspace — o install continua sendo `twenty app apply` / `install`, separado do boot.
 
 ## Variáveis que a produção precisa
 
