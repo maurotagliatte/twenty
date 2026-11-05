@@ -29,7 +29,7 @@ const StyledPointer = styled.div`
 const StyledCursor = styled.svg`
   color: var(--agent-presence-color);
   display: block;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 1px 1px ${themeCssVariables.font.color.tertiary});
 `;
 
 const StyledLabel = styled.div`
