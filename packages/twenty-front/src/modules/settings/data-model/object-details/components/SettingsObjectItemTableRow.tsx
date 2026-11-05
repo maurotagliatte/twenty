@@ -1,3 +1,4 @@
+import { buildAgentPresenceTargetKey } from '@/agent-presence/utils/buildAgentPresenceTargetKey';
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 import { type ReactNode } from 'react';
@@ -62,7 +63,12 @@ export const SettingsObjectMetadataItemTableRow = ({
             size={theme.icon.size.md}
             stroke={theme.icon.stroke.sm}
           />
-          <StyledNameContainer>
+          <StyledNameContainer
+            data-agent-presence-target={buildAgentPresenceTargetKey(
+              'object',
+              objectMetadataItem.nameSingular,
+            )}
+          >
             <StyledNameLabel title={objectMetadataItem.labelPlural}>
               {objectMetadataItem.labelPlural}
             </StyledNameLabel>

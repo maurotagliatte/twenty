@@ -9,10 +9,10 @@ source "$(dirname "$0")/.env"
 ## steps to cleanup and start over from scratch - useful when testing
 #podman pod stop twenty-pod
 #podman pod rm twenty-pod
-#podman volume rm twenty-db-data twenty-server-data twenty-redis-data
+#podman volume rm twenty-db-data-pg18 twenty-server-data twenty-redis-data
 # end of cleanup
 
-podman volume create twenty-db-data
+podman volume create twenty-db-data-pg18
 podman volume create twenty-server-data
 podman volume create twenty-redis-data
 
@@ -22,8 +22,8 @@ podman run -d --pod twenty-pod --name twenty-db \
   -e POSTGRES_DB=twenty \
   -e POSTGRES_USER=twenty \
   -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
-  -v twenty-db-data:/var/lib/postgresql/data:Z \
-  docker.io/library/postgres:16
+  -v twenty-db-data-pg18:/var/lib/postgresql:Z \
+  docker.io/pgvector/pgvector:0.8.7-pg18
 
 podman run -d --pod twenty-pod --name twenty-redis \
   -v twenty-redis-data:/data:Z \

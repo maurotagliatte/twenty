@@ -3,13 +3,13 @@ version: "3.8"
 services:
   db:
     container_name: twenty-db
-    image: postgres:16
+    image: docker.io/pgvector/pgvector:0.8.7-pg18
     environment:
       POSTGRES_DB: twenty
       POSTGRES_USER: twenty
       POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD}
     volumes:
-      - twenty-db-data:/var/lib/postgresql/data:Z
+      - twenty-db-data-pg18:/var/lib/postgresql:Z
 
   redis:
     container_name: twenty-redis
@@ -52,6 +52,6 @@ services:
     init: true
 
 volumes:
-  twenty-db-data:
+  twenty-db-data-pg18:
   twenty-server-data:
   twenty-redis-data:

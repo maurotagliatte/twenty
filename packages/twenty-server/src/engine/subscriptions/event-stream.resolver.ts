@@ -84,6 +84,7 @@ export class EventStreamResolver {
         objectRecordEventsWithQueryIds: payload.objectRecordEventsWithQueryIds,
         metadataEvents: payload.metadataEvents,
         queueJobEvents: payload.queueJobEvents ?? [],
+        agentPresenceEvents: payload.agentPresenceEvents ?? [],
       };
     },
   })

@@ -1,3 +1,4 @@
+import { buildAgentPresenceTargetKey } from '@/agent-presence/utils/buildAgentPresenceTargetKey';
 import { type RecordField } from '@/object-record/record-field/types/RecordField';
 import { hasRecordGroupsComponentSelector } from '@/object-record/record-group/states/selectors/hasRecordGroupsComponentSelector';
 
@@ -91,6 +92,10 @@ export const RecordTableHeaderCell = ({
         getRecordTableColumnFieldWidthClassName(recordFieldIndex),
       )}
       key={recordField.fieldMetadataItemId}
+      data-agent-presence-target={buildAgentPresenceTargetKey(
+        'field',
+        recordField.fieldMetadataItemId,
+      )}
       onPointerCancel={handlePointerCancel}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}

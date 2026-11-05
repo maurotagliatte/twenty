@@ -28,7 +28,7 @@ fail()  { echo "   FAIL: $*" >&2; }
 
 # --------------- detection helpers ---------------
 has_local_pg() {
-  command -v pg_ctlcluster &>/dev/null && pg_lsclusters 2>/dev/null | grep -q "16"
+  command -v pg_ctlcluster &>/dev/null && pg_lsclusters 2>/dev/null | grep -q "18"
 }
 
 has_local_redis() {
@@ -112,7 +112,7 @@ stop_docker() {
 }
 
 stop_local() {
-  if has_local_pg; then sudo pg_ctlcluster 16 main stop 2>/dev/null || true; fi
+  if has_local_pg; then sudo pg_ctlcluster 18 main stop 2>/dev/null || true; fi
   if has_local_redis && pgrep -x redis-server &>/dev/null; then
     sudo service redis-server stop 2>/dev/null || true
   fi
@@ -144,7 +144,7 @@ if [ "$ACTION" = "reset" ]; then
   # Wipe local PostgreSQL data while it's still running
   if [ "$USE_DOCKER" = false ] && has_local_pg; then
     info "Dropping local databases..."
-    sudo pg_ctlcluster 16 main start 2>/dev/null || true
+    sudo pg_ctlcluster 18 main start 2>/dev/null || true
     wait_for_pg
     sudo -u postgres psql -c 'DROP DATABASE IF EXISTS "default";' 2>/dev/null || true
     sudo -u postgres psql -c 'DROP DATABASE IF EXISTS "test";' 2>/dev/null || true
@@ -168,7 +168,7 @@ start_pg() {
 
   if [ "$USE_DOCKER" = false ] && has_local_pg; then
     info "Starting local PostgreSQL..."
-    sudo pg_ctlcluster 16 main start
+    sudo pg_ctlcluster 18 main start
     wait_for_pg
     sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';" 2>/dev/null || true
   elif can_use_docker; then
@@ -176,7 +176,7 @@ start_pg() {
     docker compose -f "$COMPOSE_FILE" up -d db
     wait_for_pg
   else
-    fail "No PostgreSQL available. Install PostgreSQL 16 or Docker."
+    fail "No PostgreSQL available. Install PostgreSQL 18 (with postgresql-18-pgvector) or Docker."
     exit 1
   fi
 }

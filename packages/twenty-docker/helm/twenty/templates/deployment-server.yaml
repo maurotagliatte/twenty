@@ -66,7 +66,7 @@ spec:
         {{- end }}
       initContainers:
         - name: wait-for-db
-          image: postgres:16-alpine
+          image: postgres:18-alpine
           command:
             - sh
             - -c
@@ -80,7 +80,7 @@ spec:
               echo "Database socket is ready!"
         {{- if .Values.db.enabled }}
         - name: ensure-database-exists
-          image: postgres:16-alpine
+          image: postgres:18-alpine
           env:
             - name: PGPASSWORD
               valueFrom:

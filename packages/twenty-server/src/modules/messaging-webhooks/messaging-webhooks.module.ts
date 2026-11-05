@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { EmailingDomainModule } from 'src/engine/core-modules/emailing-domain/emailing-domain.module';
 import { EmailingModule } from 'src/modules/emailing/emailing.module';
+import { CloudflareInboundWebhookDriverService } from 'src/modules/messaging-webhooks/drivers/cloudflare/services/cloudflare-inbound-webhook-driver.service';
 import { ResendWebhookDriverService } from 'src/modules/messaging-webhooks/drivers/resend/services/resend-webhook-driver.service';
 import { ResendWebhookVerifierService } from 'src/modules/messaging-webhooks/drivers/resend/services/resend-webhook-verifier.service';
 import { SesInboundWebhookDriverService } from 'src/modules/messaging-webhooks/drivers/aws-ses/services/ses-inbound-webhook-driver.service';
@@ -34,6 +35,7 @@ import { MessagingWebhooksController } from 'src/modules/messaging-webhooks/mess
     SesOutboundWebhookDriverService,
     ResendWebhookVerifierService,
     ResendWebhookDriverService,
+    CloudflareInboundWebhookDriverService,
   ],
 })
 export class MessagingWebhooksModule {}

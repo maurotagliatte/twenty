@@ -9,7 +9,7 @@ export class AddWorkspaceAssistantProfileSlowInstanceCommand implements SlowInst
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      'ALTER TABLE "core"."workspace" ADD "aiChatAssistantProfile" jsonb NOT NULL DEFAULT \'{"displayName":"Ada","avatarShape":"circle","avatarColor":"blue","avatarFace":"default","isAvatarAnimated":true}\'',
+      'ALTER TABLE "core"."workspace" ADD COLUMN IF NOT EXISTS "aiChatAssistantProfile" jsonb NOT NULL DEFAULT \'{"displayName":"Ada","avatarShape":"circle","avatarColor":"blue","avatarFace":"default","isAvatarAnimated":true}\'',
     );
   }
 

@@ -651,6 +651,15 @@ export class ConfigVariables {
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.STORAGE_CONFIG,
     description:
+      'Bucket where inbound raw emails are parked (same S3 endpoint and credentials as file storage). Defaults to STORAGE_S3_NAME.',
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  INBOUND_EMAIL_S3_BUCKET: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.STORAGE_CONFIG,
+    description:
       'Custom S3 endpoint URL. Optional — only needed for S3-compatible services like MinIO (e.g. http://minio:9000). Omit for native AWS S3, where the SDK resolves the endpoint from the region automatically.',
     type: ConfigVariableType.STRING,
   })
@@ -2052,6 +2061,16 @@ export class ConfigVariables {
   })
   @IsOptional()
   CLOUDFLARE_WEBHOOK_SECRET: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.CLOUDFLARE_CONFIG,
+    description:
+      'HMAC secret shared with the Cloudflare Email Routing Worker that posts to /webhooks/messaging/cloudflare/inbound',
+    type: ConfigVariableType.STRING,
+    isSensitive: true,
+  })
+  @IsOptional()
+  CLOUDFLARE_EMAIL_WEBHOOK_SECRET: string;
 
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.CLOUDFLARE_CONFIG,

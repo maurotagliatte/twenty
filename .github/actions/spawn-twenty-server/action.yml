@@ -50,7 +50,7 @@ runs:
           -e POSTGRES_USER=postgres \
           -e POSTGRES_PASSWORD=postgres \
           -p 5432:5432 \
-          postgres:18
+          pgvector/pgvector:0.8.7-pg18
         docker run -d --name twenty-redis -p 6379:6379 redis
 
         echo "Waiting for postgres…"

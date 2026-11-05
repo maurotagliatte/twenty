@@ -42,6 +42,22 @@ export const ON_EVENT_SUBSCRIPTION = gql`
         startedAt
         finishedAt
       }
+      agentPresenceEvents {
+        id
+        agentId
+        agentName
+        toolName
+        action
+        targetKind
+        objectMetadataId
+        objectNameSingular
+        objectLabel
+        fieldMetadataId
+        fieldLabel
+        viewId
+        recordId
+        emittedAt
+      }
     }
   }
 `;

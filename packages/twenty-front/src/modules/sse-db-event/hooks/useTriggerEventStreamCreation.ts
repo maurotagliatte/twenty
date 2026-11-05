@@ -1,4 +1,5 @@
 import { dispatchBrowserEvent } from '@/browser-event/utils/dispatchBrowserEvent';
+import { dispatchAgentPresenceEventsFromSseToBrowserEvents } from '@/sse-db-event/utils/dispatchAgentPresenceEventsFromSseToBrowserEvents';
 import { dispatchQueueJobEventsFromSseToBrowserEvents } from '@/sse-db-event/utils/dispatchQueueJobEventsFromSseToBrowserEvents';
 import { SSE_CLIENT_RECONNECTED_EVENT_NAME } from '@/sse-db-event/constants/SseClientReconnectedEventName';
 import { ON_EVENT_SUBSCRIPTION } from '@/sse-db-event/graphql/subscriptions/OnEventSubscription';
@@ -143,6 +144,9 @@ export const useTriggerEventStreamCreation = () => {
 
             const queueJobEvents = eventSubscription?.queueJobEvents ?? [];
 
+            const agentPresenceEvents =
+              eventSubscription?.agentPresenceEvents ?? [];
+
             const objectRecordEvents = objectRecordEventsWithQueryIds.map(
               (item) => item.objectRecordEvent,
             );
@@ -150,6 +154,10 @@ export const useTriggerEventStreamCreation = () => {
             dispatchMetadataEventsFromSseToBrowserEvents(metadataEvents);
 
             dispatchQueueJobEventsFromSseToBrowserEvents(queueJobEvents);
+
+            dispatchAgentPresenceEventsFromSseToBrowserEvents(
+              agentPresenceEvents,
+            );
 
             triggerOptimisticEffectFromSseEvents({
               objectRecordEvents,

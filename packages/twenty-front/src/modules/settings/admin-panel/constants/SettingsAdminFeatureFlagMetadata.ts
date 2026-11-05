@@ -56,4 +56,8 @@ export const SETTINGS_ADMIN_FEATURE_FLAG_METADATA: Record<
     label: msg`Getting started`,
     description: msg`Show the Getting started page and sidebar card, and open it on landing during the trial.`,
   },
+  [FeatureFlagKey.IS_AGENT_UI_PRESENCE_ENABLED]: {
+    label: msg`Agent pointer`,
+    description: msg`Show an animated pointer on the elements AI agents create or change.`,
+  },
 };

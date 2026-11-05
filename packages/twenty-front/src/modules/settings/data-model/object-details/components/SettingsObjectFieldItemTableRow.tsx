@@ -1,3 +1,4 @@
+import { buildAgentPresenceTargetKey } from '@/agent-presence/utils/buildAgentPresenceTargetKey';
 import { isDDLLockedState } from '@/client-config/states/isDDLLockedState';
 import { useDeleteOneFieldMetadataItem } from '@/object-metadata/hooks/useDeleteOneFieldMetadataItem';
 import { useFieldMetadataItem } from '@/object-metadata/hooks/useFieldMetadataItem';
@@ -182,7 +183,12 @@ export const SettingsObjectFieldItemTableRow = ({
               stroke={theme.icon.stroke.sm}
             />
           )}
-          <StyledNameContainer>
+          <StyledNameContainer
+            data-agent-presence-target={buildAgentPresenceTargetKey(
+              'field',
+              fieldMetadataItem.id,
+            )}
+          >
             <StyledNameLabel title={fieldMetadataItem.label}>
               {fieldMetadataItem.label}
             </StyledNameLabel>

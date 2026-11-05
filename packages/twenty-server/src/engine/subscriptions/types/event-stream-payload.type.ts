@@ -1,3 +1,4 @@
+import { type AgentPresenceEvent } from 'src/engine/subscriptions/agent-presence-event/types/agent-presence-event.type';
 import { type EventStreamMetadataEvent } from 'src/engine/subscriptions/types/event-stream-metadata-event.type';
 import { type ObjectRecordSubscriptionEvent } from 'src/engine/subscriptions/types/object-record-subscription-event.type';
 import { type QueueJobEvent } from 'src/engine/subscriptions/types/queue-job-event.type';
@@ -9,4 +10,5 @@ export type EventStreamPayload = {
   }[];
   metadataEvents: EventStreamMetadataEvent[];
   queueJobEvents?: QueueJobEvent[];
+  agentPresenceEvents?: AgentPresenceEvent[];
 };

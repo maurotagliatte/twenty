@@ -13,7 +13,12 @@ export class InboundEmailS3ClientProvider {
   constructor(private readonly twentyConfigService: TwentyConfigService) {}
 
   getBucket(): string {
-    const bucket = this.twentyConfigService.get('STORAGE_S3_NAME');
+    const inboundBucket = this.twentyConfigService.get(
+      'INBOUND_EMAIL_S3_BUCKET',
+    );
+    const bucket = isNonEmptyString(inboundBucket)
+      ? inboundBucket
+      : this.twentyConfigService.get('STORAGE_S3_NAME');
 
     if (!isNonEmptyString(bucket)) {
       throw new Error(
@@ -44,6 +49,9 @@ export class InboundEmailS3ClientProvider {
 
     if (isNonEmptyString(endpoint)) {
       config.endpoint = endpoint;
+      // R2 rejects virtual-hosted requests on the account endpoint. The file
+      // driver already forces path style for the same S3-compatible setup.
+      config.forcePathStyle = true;
     }
 
     const accessKeyId = this.twentyConfigService.get(

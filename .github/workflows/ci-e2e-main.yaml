@@ -42,7 +42,7 @@ jobs:
       NODE_OPTIONS: "--max-old-space-size=10240"
     services:
       postgres:
-        image: postgres:18
+        image: pgvector/pgvector:0.8.7-pg18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres

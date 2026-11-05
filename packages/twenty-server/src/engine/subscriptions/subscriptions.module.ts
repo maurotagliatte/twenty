@@ -10,6 +10,7 @@ import { WorkspaceManyOrAllFlatEntityMapsCacheModule } from 'src/engine/metadata
 import { NavigationMenuItemModule } from 'src/engine/metadata-modules/navigation-menu-item/navigation-menu-item.module';
 import { PermissionsModule } from 'src/engine/permissions/permissions.module';
 import { RecordShareModule } from 'src/engine/permissions/record-share/record-share.module';
+import { AgentPresenceEventListener } from 'src/engine/subscriptions/agent-presence-event/agent-presence-event.listener';
 import { EventStreamResolver } from 'src/engine/subscriptions/event-stream.resolver';
 import { EventStreamService } from 'src/engine/subscriptions/event-stream.service';
 import { MetadataEventEmitter } from 'src/engine/subscriptions/metadata-event/metadata-event-emitter';
@@ -46,6 +47,7 @@ import { WorkspaceCacheModule } from 'src/engine/workspace-cache/workspace-cache
     MetadataEventsToDbListener,
     WorkspaceEventBroadcaster,
     QueueJobEventListener,
+    AgentPresenceEventListener,
     ProcessNestedRelationsHelper,
     CommonSelectFieldsBuilder,
   ],

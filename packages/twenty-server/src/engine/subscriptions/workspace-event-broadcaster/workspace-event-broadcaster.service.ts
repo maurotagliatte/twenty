@@ -4,6 +4,7 @@ import { isDefined } from 'twenty-shared/utils';
 
 import { type PermissionFlagType } from 'twenty-shared/constants';
 
+import { type AgentPresenceEvent } from 'src/engine/subscriptions/agent-presence-event/types/agent-presence-event.type';
 import { WorkspaceManyOrAllFlatEntityMapsCacheService } from 'src/engine/metadata-modules/flat-entity/services/workspace-many-or-all-flat-entity-maps-cache.service';
 import { resolveUserWorkspaceIdsWithPermissionFlag } from 'src/engine/permissions/role/utils/resolve-user-workspace-ids-with-permission-flag.util';
 import { EventStreamService } from 'src/engine/subscriptions/event-stream.service';
@@ -113,6 +114,27 @@ export class WorkspaceEventBroadcaster {
             objectRecordEventsWithQueryIds: [],
             metadataEvents: [],
             queueJobEvents: [queueJobEvent],
+          }
+        : undefined,
+    );
+  }
+
+  async broadcastAgentPresenceEvent({
+    workspaceId,
+    userWorkspaceId,
+    agentPresenceEvent,
+  }: {
+    workspaceId: string;
+    userWorkspaceId?: string;
+    agentPresenceEvent: AgentPresenceEvent;
+  }): Promise<void> {
+    await this.publishToActiveStreams(workspaceId, (streamData) =>
+      !isDefined(userWorkspaceId) ||
+      streamData.authContext.userWorkspaceId === userWorkspaceId
+        ? {
+            objectRecordEventsWithQueryIds: [],
+            metadataEvents: [],
+            agentPresenceEvents: [agentPresenceEvent],
           }
         : undefined,
     );

@@ -55,7 +55,7 @@ jobs:
       id-token: write
     services:
       postgres:
-        image: postgres:16
+        image: pgvector/pgvector:0.8.7-pg18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -131,7 +131,7 @@ jobs:
       id-token: write
     services:
       postgres:
-        image: postgres:16
+        image: pgvector/pgvector:0.8.7-pg18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
