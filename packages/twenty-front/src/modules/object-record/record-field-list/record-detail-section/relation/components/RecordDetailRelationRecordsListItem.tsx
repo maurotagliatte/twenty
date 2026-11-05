@@ -25,10 +25,11 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { motion } from 'framer-motion';
 import { useCallback, useContext } from 'react';
 import { createPortal } from 'react-dom';
-import { CoreObjectNameSingular } from 'twenty-shared/types';
+import { StandardObjectNameSingular } from 'twenty-shared/types';
 import {
-  CustomError,
+  canReachSomeRecords,
   computeMorphRelationGqlFieldName,
+  CustomError,
 } from 'twenty-shared/utils';
 import { doNotTranslate } from 'twenty-shared/i18n';
 import { LightIconButton } from 'twenty-ui/components/input';
@@ -123,7 +124,7 @@ export const RecordDetailRelationRecordsListItem = ({
 
   const isAccountOwnerRelation =
     relationObjectMetadataNameSingular ===
-    CoreObjectNameSingular.WorkspaceMember;
+    StandardObjectNameSingular.WorkspaceMember;
 
   const dropdownInstanceId = `record-field-card-menu:${scopeInstanceId}:${relationFieldMetadataId}:${relationRecord.id}`;
 
@@ -242,7 +243,10 @@ export const RecordDetailRelationRecordsListItem = ({
                   onClick={handleDetach}
                 >{t`Detach`}</Dropdown.ActionItem>
                 {!isAccountOwnerRelation &&
-                  relationObjectPermissions.canSoftDeleteObjectRecords && (
+                  canReachSomeRecords({
+                    objectRecordsPermissions: relationObjectPermissions,
+                    operationType: 'soft-delete',
+                  }) && (
                     <Dropdown.ActionItem
                       startIcon={<IconTrash />}
                       color="danger"

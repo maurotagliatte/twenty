@@ -1,3 +1,5 @@
+import { writeChatMemberMessage } from 'test/integration/ai/utils/write-chat-member-message.util';
+import { AgentChatMemberMessagePlacement } from 'src/engine/metadata-modules/ai/ai-chat/enums/agent-chat-member-message-placement.enum';
 import { updateFeatureFlag } from 'test/integration/metadata/suites/utils/update-feature-flag.util';
 import { createOneOperationFactory } from 'test/integration/graphql/utils/create-one-operation-factory.util';
 import { deleteOneOperationFactory } from 'test/integration/graphql/utils/delete-one-operation-factory.util';
@@ -46,7 +48,7 @@ import { USER_WORKSPACE_DATA_SEED_IDS } from 'src/engine/workspace-manager/dev-s
 import { WORKSPACE_MEMBER_DATA_SEED_IDS } from 'src/engine/workspace-manager/dev-seeder/data/constants/workspace-member-data-seeds.constant';
 import { getWorkspaceSchemaName } from 'src/engine/workspace-datasource/utils/get-workspace-schema-name.util';
 import { DatabaseEventAction } from 'src/engine/api/graphql/graphql-query-runner/enums/database-event-action';
-import { type RecordAccessPolicyService } from 'src/engine/permissions/combine/services/record-access-policy.service';
+import { type PermissionsService } from 'src/engine/permissions/permissions.service';
 import { type WorkspaceEventBatch } from 'src/engine/workspace-event-emitter/types/workspace-event-batch.type';
 import { computeEventName } from 'src/engine/workspace-event-emitter/utils/compute-event-name';
 
@@ -466,10 +468,14 @@ describe('Conversation sharing through the authenticated API', () => {
         expect(
           (await grant(RecordShareAccessLevel.READ_WRITE)).body.errors,
         ).toBeUndefined();
-        const queued = await queue.queueMessage({
-          ...sender,
-          threadId,
-          text: 'Use my permissions',
+        const queued = await writeChatMemberMessage({
+          actor: sender,
+          thread: await getAgentChatThreadService().getWritableThread({
+            ...sender,
+            threadId,
+          }),
+          message: { text: 'Use my permissions' },
+          placement: AgentChatMemberMessagePlacement.QUEUED,
         });
         const turnId = await queue.promoteQueuedMessage({
           workspaceId,
@@ -690,7 +696,7 @@ describe('Conversation sharing through the authenticated API', () => {
       threadId: randomUUID(),
     };
     const cleanup = jest
-      .spyOn(shareService, 'deleteByRecordIdsInTransaction')
+      .spyOn(shareService, 'deleteByRecordIds')
       .mockRejectedValueOnce(new Error('Grant storage unavailable'));
     try {
       await expect(
@@ -970,7 +976,7 @@ describe('Conversations through the record API', () => {
     );
   };
 
-  const isAdmittedByDestroyEvent = async ({
+  const isReadableFromDestroyEvent = async ({
     batch,
     threadId,
     userWorkspaceId,
@@ -989,19 +995,18 @@ describe('Conversations through the record API', () => {
       throw new Error(`Seeded role of ${userWorkspaceId} is missing`);
     }
 
-    const admittedRecordIds =
-      await getAppProviderByClassName<RecordAccessPolicyService>(
-        'RecordAccessPolicyService',
-      )
-        .buildEventRecordAccessGate(batch)
-        .resolveAdmittedRecordIds(
-          await resolveWorkspaceMemberAuthContext({
-            workspaceId: SEED_APPLE_WORKSPACE_ID,
-            workspaceMemberId,
-          }),
-        );
+    const readableRecordIds =
+      await getAppProviderByClassName<PermissionsService>(
+        'PermissionsService',
+      ).findReadableEventRecordIds({
+        authContext: await resolveWorkspaceMemberAuthContext({
+          workspaceId: SEED_APPLE_WORKSPACE_ID,
+          workspaceMemberId,
+        }),
+        eventBatch: batch,
+      });
 
-    return admittedRecordIds.has(threadId);
+    return readableRecordIds.has(threadId);
   };
 
   it.each([false, true])(
@@ -1055,7 +1060,7 @@ describe('Conversations through the record API', () => {
 
         expect(await readStoredThread(threadId)).toBeNull();
         expect(
-          await isAdmittedByDestroyEvent({
+          await isReadableFromDestroyEvent({
             batch,
             threadId,
             userWorkspaceId: USER_WORKSPACE_DATA_SEED_IDS.JANE,
@@ -1063,7 +1068,7 @@ describe('Conversations through the record API', () => {
           }),
         ).toBe(true);
         expect(
-          await isAdmittedByDestroyEvent({
+          await isReadableFromDestroyEvent({
             batch,
             threadId,
             userWorkspaceId: USER_WORKSPACE_DATA_SEED_IDS.JONY,
@@ -1071,7 +1076,7 @@ describe('Conversations through the record API', () => {
           }),
         ).toBe(true);
         expect(
-          await isAdmittedByDestroyEvent({
+          await isReadableFromDestroyEvent({
             batch,
             threadId,
             userWorkspaceId: USER_WORKSPACE_DATA_SEED_IDS.PHIL,
