@@ -14,6 +14,7 @@ import { isDefined } from 'twenty-shared/utils';
 
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { PublicEndpointGuard } from 'src/engine/guards/public-endpoint.guard';
+import { CloudflareInboundWebhookDriverService } from 'src/modules/messaging-webhooks/drivers/cloudflare/services/cloudflare-inbound-webhook-driver.service';
 import { ResendWebhookDriverService } from 'src/modules/messaging-webhooks/drivers/resend/services/resend-webhook-driver.service';
 import { SesInboundWebhookDriverService } from 'src/modules/messaging-webhooks/drivers/aws-ses/services/ses-inbound-webhook-driver.service';
 import { SesOutboundWebhookDriverService } from 'src/modules/messaging-webhooks/drivers/aws-ses/services/ses-outbound-webhook-driver.service';
@@ -28,6 +29,7 @@ export class MessagingWebhooksController {
     private readonly sesInboundWebhookDriverService: SesInboundWebhookDriverService,
     private readonly sesOutboundWebhookDriverService: SesOutboundWebhookDriverService,
     private readonly resendWebhookDriverService: ResendWebhookDriverService,
+    private readonly cloudflareInboundWebhookDriverService: CloudflareInboundWebhookDriverService,
   ) {}
 
   @Post(`${ApiPath.Webhooks}/messaging/ses/inbound`)
@@ -79,6 +81,25 @@ export class MessagingWebhooksController {
       svixId: this.getHeader(request, 'svix-id'),
       svixTimestamp: this.getHeader(request, 'svix-timestamp'),
       svixSignature: this.getHeader(request, 'svix-signature'),
+    });
+  }
+
+  @Post(`${ApiPath.Webhooks}/messaging/cloudflare/inbound`)
+  @UseGuards(PublicEndpointGuard, NoPermissionGuard)
+  @HttpCode(200)
+  async handleCloudflareInboundWebhook(
+    @Req() request: RawBodyRequest<Request>,
+  ): Promise<void> {
+    if (!isDefined(request.rawBody)) {
+      throw new MessagingWebhookException(
+        'Missing Cloudflare payload',
+        MessagingWebhookExceptionCode.MESSAGING_WEBHOOK_MISSING_REQUEST_BODY,
+      );
+    }
+
+    await this.cloudflareInboundWebhookDriverService.handle(request.rawBody, {
+      timestamp: this.getHeader(request, 'x-twenty-timestamp'),
+      signature: this.getHeader(request, 'x-twenty-signature'),
     });
   }
 

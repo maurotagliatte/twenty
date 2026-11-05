@@ -13,7 +13,12 @@ export class InboundEmailS3ClientProvider {
   constructor(private readonly twentyConfigService: TwentyConfigService) {}
 
   getBucket(): string {
-    const bucket = this.twentyConfigService.get('STORAGE_S3_NAME');
+    const inboundBucket = this.twentyConfigService.get(
+      'INBOUND_EMAIL_S3_BUCKET',
+    );
+    const bucket = isNonEmptyString(inboundBucket)
+      ? inboundBucket
+      : this.twentyConfigService.get('STORAGE_S3_NAME');
 
     if (!isNonEmptyString(bucket)) {
       throw new Error(

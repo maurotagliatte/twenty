@@ -1,0 +1,8 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "khard-edge",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "account_id": "f846dec33b834d94fc5ab1b989724769",
+  "r2_buckets": [{ "binding": "INBOUND", "bucket_name": "khard-inbound" }]
+}
