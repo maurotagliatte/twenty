@@ -1,1 +1,0 @@
-export { AffiliateApplicationForm } from './AffiliateApplicationForm';

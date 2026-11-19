@@ -1,1 +1,0 @@
-export const CALL_RECORDINGS_WIDGET_MAX_COUNT = 20;

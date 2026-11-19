@@ -1,1 +1,0 @@
-export const SETTINGS_MENU_ITEM_SLUG_MAX_LENGTH = 64;

@@ -1,1 +1,0 @@
-export const CODE_STEP_SOURCE_MAX_LENGTH = 256_000;

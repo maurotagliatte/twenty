@@ -1,1 +1,0 @@
-export const AGENT_PRESENCE_LINGER_TIME_IN_MS = 6000;

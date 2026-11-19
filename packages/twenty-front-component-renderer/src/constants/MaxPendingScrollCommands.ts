@@ -1,1 +1,0 @@
-export const MAX_PENDING_SCROLL_COMMANDS = 32;

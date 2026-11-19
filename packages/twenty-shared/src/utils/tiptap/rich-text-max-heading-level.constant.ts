@@ -1,1 +1,0 @@
-export const RICH_TEXT_MAX_HEADING_LEVEL = 6;

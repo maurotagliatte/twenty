@@ -1,1 +1,0 @@
-export const SERVER_ROUTE_FORWARDABLE_CREDENTIAL_HEADER_NAME = 'authorization';

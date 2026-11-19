@@ -1,0 +1,13 @@
+{
+  "name": "@khard/inbound-email-worker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Email Routing worker that stores inbound mail in R2 and notifies Twenty.",
+  "engines": {
+    "node": ">=24.5.0"
+  },
+  "scripts": {
+    "test": "node --test src/*.test.ts",
+    "deploy": "npx wrangler@4 deploy"
+  }
+}
