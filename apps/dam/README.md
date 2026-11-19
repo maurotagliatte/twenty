@@ -21,10 +21,11 @@ or `collection` object.
 
 ## Views and navigation
 
-A "DAM & BAM" sidebar folder holds Assets, Review board (kanban by status),
-Approved library (approved assets grouped by category), Expiring rights (usage
-expires in the next 30 days), Collections, Brands and Brand logos. An "Expired
-rights, still active" view is available from the Assets view picker.
+The "DAM & BAM" sidebar folder holds one entry per destination: Asset browser,
+Assets, Collections and Brands. Saved views live in the Assets view picker:
+All assets (the default, unfiltered table), Review board (kanban by status),
+Approved library (approved assets grouped by category), Brand logos, Expiring
+rights (usage expires in the next 30 days) and Expired rights, still active.
 
 ## Asset browser
 

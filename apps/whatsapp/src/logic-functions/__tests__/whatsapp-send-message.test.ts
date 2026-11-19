@@ -32,6 +32,8 @@ const PAYLOAD = {
   text: 'Olá',
   idempotencyKey: 'key',
   recipients: [],
+  attachments: [],
+  conversationStyle: 'chat' as const,
 };
 
 describe('whatsappSendMessageHandler', () => {

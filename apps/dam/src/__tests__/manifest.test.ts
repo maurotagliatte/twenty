@@ -9,10 +9,12 @@ import {
   DAM_ASSET_STATUS_OPTIONS,
 } from 'src/constants/dam-asset-options';
 import {
+  ALL_ASSETS_VIEW_UNIVERSAL_IDENTIFIER,
   APPROVED_LIBRARY_VIEW_UNIVERSAL_IDENTIFIER,
   ASSET_GALLERY_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
   BRAND_KIT_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
   COLLECTION_GALLERY_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER,
+  DAM_ASSET_OBJECT_UNIVERSAL_IDENTIFIER,
   DAM_COLLECTION_ASSET_OBJECT_UNIVERSAL_IDENTIFIER,
   DAM_FOLDER_NAVIGATION_MENU_ITEM_UNIVERSAL_IDENTIFIER,
   REVIEW_BOARD_VIEW_UNIVERSAL_IDENTIFIER,
@@ -46,6 +48,7 @@ type ViewConfig = {
   universalIdentifier: string;
   objectUniversalIdentifier: string;
   type?: ViewType;
+  position?: number;
   mainGroupByFieldMetadataUniversalIdentifier?: string;
   fields?: ViewEntity[];
   filters?: ViewEntity[];
@@ -277,6 +280,28 @@ describe('navigation', () => {
         DAM_FOLDER_NAVIGATION_MENU_ITEM_UNIVERSAL_IDENTIFIER,
       );
     }
+  });
+
+  it('keeps saved views out of the sidebar', () => {
+    const types = NAVIGATION_MENU_ITEMS.map(([, { config }]) => config.type);
+
+    expect(types).not.toContain(NavigationMenuItemType.VIEW);
+  });
+
+  it('opens Assets on the unfiltered table', () => {
+    const assetViews = VIEWS.map(([, { config }]) => config).filter(
+      (view) =>
+        view.objectUniversalIdentifier ===
+        DAM_ASSET_OBJECT_UNIVERSAL_IDENTIFIER,
+    );
+    const firstView = [...assetViews].sort(
+      (left, right) => (left.position ?? 0) - (right.position ?? 0),
+    )[0];
+
+    expect(firstView?.universalIdentifier).toBe(
+      ALL_ASSETS_VIEW_UNIVERSAL_IDENTIFIER,
+    );
+    expect(firstView?.filters ?? []).toHaveLength(0);
   });
 
   it('links every user-facing object from the sidebar', () => {

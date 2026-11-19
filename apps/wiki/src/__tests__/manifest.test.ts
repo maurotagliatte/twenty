@@ -276,6 +276,12 @@ describe('navigation', () => {
     (item) => item.type !== NavigationMenuItemType.FOLDER,
   );
 
+  it('keeps saved views out of the sidebar', () => {
+    const types = NAVIGATION_MENU_ITEMS.map(([, { config }]) => config.type);
+
+    expect(types).not.toContain(NavigationMenuItemType.VIEW);
+  });
+
   it('puts every entry inside the Wiki folder', () => {
     expect(entries.length).toBeGreaterThan(0);
     for (const entry of entries) {

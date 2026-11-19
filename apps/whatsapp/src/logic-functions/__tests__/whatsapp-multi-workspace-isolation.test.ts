@@ -514,6 +514,8 @@ describe('WhatsApp across two workspaces', () => {
           text: 'Olá',
           idempotencyKey: 'idempotency-key',
           recipients: [],
+          attachments: [],
+          conversationStyle: 'chat',
         }),
       ),
     ).resolves.toMatchObject({ externalId: 'wamid.OUT' });
@@ -535,6 +537,8 @@ describe('WhatsApp across two workspaces', () => {
           text: 'Olá',
           idempotencyKey: 'idempotency-key',
           recipients: [],
+          attachments: [],
+          conversationStyle: 'chat',
         }),
       ),
     ).rejects.toThrow('Connection connection-a not found');
