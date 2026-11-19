@@ -1,2 +1,0 @@
-export const ADD_FIELD_METADATA_OPTION_TABLE_UPGRADE_COMMAND_NAME =
-  '2.56.0_AddFieldMetadataOptionTableFastInstanceCommand_1793814954654';

@@ -1,2 +1,0 @@
-export const ADD_WORKSPACE_ASSISTANT_PROFILE_UPGRADE_COMMAND_NAME =
-  '2.56.0_AddWorkspaceAssistantProfileSlowInstanceCommand_1793810534548';

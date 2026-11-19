@@ -1,1 +1,0 @@
-export const AVAILABLE_TIME_ZONE_OPTIONS_REFERENCE_DATE = new Date();

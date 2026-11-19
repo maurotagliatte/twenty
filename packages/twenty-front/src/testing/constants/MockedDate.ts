@@ -1,1 +1,0 @@
-export const MOCKED_DATE = '2024-03-12T09:30:00.000Z';

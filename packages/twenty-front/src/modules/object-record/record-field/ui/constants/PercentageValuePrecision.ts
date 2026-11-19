@@ -1,1 +1,0 @@
-export const PERCENTAGE_VALUE_PRECISION = 15;

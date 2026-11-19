@@ -1,2 +1,0 @@
-export const ADD_RELATED_RECORD_PATH_IS_INHERENT_UPGRADE_COMMAND_NAME =
-  '2.55.0_AddRelatedRecordPathIsInherentFastInstanceCommand_1793375358574';

@@ -1,1 +1,0 @@
-export const MILLISECONDS_PER_MINUTE = 60 * 1_000;

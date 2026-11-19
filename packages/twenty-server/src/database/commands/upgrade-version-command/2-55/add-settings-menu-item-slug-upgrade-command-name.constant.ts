@@ -1,2 +1,0 @@
-export const ADD_SETTINGS_MENU_ITEM_SLUG_UPGRADE_COMMAND_NAME =
-  '2.55.0_AddSettingsMenuItemSlugFastInstanceCommand_1793618487873';

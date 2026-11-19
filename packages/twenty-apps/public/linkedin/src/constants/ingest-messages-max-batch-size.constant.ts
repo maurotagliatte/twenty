@@ -1,1 +1,0 @@
-export const INGEST_MESSAGES_MAX_BATCH_SIZE = 100;
